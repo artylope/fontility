@@ -49,7 +49,9 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
   }
 
   const weightQuery = weights.join(',')
-  const fontUrl = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/\s+/g, '+')}:wght@${weightQuery}&display=swap`
+  // Properly encode the font family name for URLs
+  const encodedFontFamily = encodeURIComponent(fontFamily)
+  const fontUrl = `https://fonts.googleapis.com/css2?family=${encodedFontFamily}:wght@${weightQuery}&display=swap`
 
   console.log('Loading font:', fontFamily, 'with weights:', weights, 'URL:', fontUrl)
 
@@ -58,18 +60,36 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
   link.rel = 'stylesheet'
   link.href = fontUrl
 
+  // Add error handling
+  link.onerror = () => {
+    console.error('Failed to load font:', fontFamily, 'URL:', fontUrl)
+  }
+  
+  link.onload = () => {
+    console.log('Successfully loaded font:', fontFamily)
+  }
+
   document.head.appendChild(link)
   console.log('Font link added to document head:', fontId)
   
-  // Force browser to load the font by creating a temporary element
-  const testDiv = document.createElement('div')
-  testDiv.style.fontFamily = `"${fontFamily}"`
-  testDiv.style.position = 'absolute'
-  testDiv.style.visibility = 'hidden'
-  testDiv.style.fontSize = '1px'
-  testDiv.textContent = 'test'
-  document.body.appendChild(testDiv)
-  setTimeout(() => document.body.removeChild(testDiv), 100)
+  // Use Font Loading API if available, otherwise fallback to timeout
+  if ('fonts' in document) {
+    document.fonts.load(`${weights[0]} 16px "${fontFamily}"`).then(() => {
+      console.log('Font loaded via Font Loading API:', fontFamily)
+    }).catch((error) => {
+      console.error('Font loading failed via Font Loading API:', fontFamily, error)
+    })
+  } else {
+    // Fallback: Force browser to load the font by creating a temporary element
+    const testDiv = document.createElement('div')
+    testDiv.style.fontFamily = `"${fontFamily}"`
+    testDiv.style.position = 'absolute'
+    testDiv.style.visibility = 'hidden'
+    testDiv.style.fontSize = '1px'
+    testDiv.textContent = 'test'
+    document.body.appendChild(testDiv)
+    setTimeout(() => document.body.removeChild(testDiv), 100)
+  }
 }
 
 export function getFontWeights(font: GoogleFont): string[] {
@@ -83,4 +103,24 @@ export function getFontWeights(font: GoogleFont): string[] {
 
   // Always include 400 if no weights are available
   return availableWeights.length > 0 ? availableWeights : ['400']
+}
+
+// Check if a font is available via Google Fonts API
+export async function validateGoogleFont(fontFamily: string): Promise<boolean> {
+  try {
+    const encodedFontFamily = encodeURIComponent(fontFamily)
+    const testUrl = `https://fonts.googleapis.com/css2?family=${encodedFontFamily}:wght@400&display=swap`
+    
+    const response = await fetch(testUrl, { method: 'HEAD' })
+    const isValid = response.ok
+    
+    if (!isValid) {
+      console.warn('Font not available on Google Fonts:', fontFamily, 'Status:', response.status)
+    }
+    
+    return isValid
+  } catch (error) {
+    console.error('Error validating font:', fontFamily, error)
+    return false
+  }
 }

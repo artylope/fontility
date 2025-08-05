@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Dices } from 'lucide-react'
+import { Dices, Plus } from 'lucide-react'
 import { useFontPairStore } from '@/lib/store'
 import { loadGoogleFont, getFontWeights, fetchGoogleFonts, GoogleFont } from '@/lib/google-fonts'
 
@@ -30,7 +30,7 @@ const PREVIEW_HEADING = "Great typography guides the reader's eye"
 const PREVIEW_BODY = "Customize responsive typography systems for your fonts with meticulously designed editors for line height and letter spacing across font sizes and breakpoints."
 
 export function PreviewArea() {
-  const { fontPairs, activePairId, setActivePair, updateFontPair } = useFontPairStore()
+  const { fontPairs, activePairId, setActivePair, updateFontPair, addFontPair } = useFontPairStore()
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const [forceUpdate, setForceUpdate] = useState(0)
   const [loadingFonts, setLoadingFonts] = useState<Set<string>>(new Set())
@@ -70,6 +70,14 @@ export function PreviewArea() {
         weight: randomBodyWeight,
         category: bodyFont.category
       }
+    })
+  }
+
+  const randomizeAllFontPairs = () => {
+    if (allFonts.length === 0) return
+
+    fontPairs.forEach(pair => {
+      randomizeFontPair(pair.id)
     })
   }
 
@@ -135,18 +143,39 @@ export function PreviewArea() {
   }, [activePairId])
 
   return (
-    <div className="flex-1 p-8 pb-16 overflow-y-scroll bg-stone-50 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
-      <div className="flex flex-wrap gap-6 justify-center items-center ">
-        <div className="flex flex-wrap gap-6 w-full">
+    <div className="w-full flex-1 flex flex-col overflow-y-auto bg-stone-50  pb-12 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+      {/* Header with buttons */}
+      <div className="sticky top-0 p-8 py-4 pb-4 flex justify-start gap-2">
+
+        <Button onClick={addFontPair} size="sm" className="gap-2">
+          <Plus className="w-4 h-4" />
+          Add Set
+        </Button>          <Button
+          onClick={randomizeAllFontPairs}
+          size="sm"
+          variant="outline"
+          className="gap-2 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600"
+          title="Randomize all font pairs"
+          disabled={allFonts.length === 0}
+        >
+          <Dices className="w-4 h-4" />
+          Randomize All
+        </Button>
+
+      </div>
+
+      {/* Content area */}
+      <div className="px-8 pb-16 flex-1 w-full">
+        <div className="flex flex-wrap gap-6 justify-start w-full">
           {fontPairs.map((pair) => (
             <Card
               key={pair.id}
               ref={(el) => {
                 cardRefs.current[pair.id] = el
               }}
-              className={`bg-white p-6 max-w-lg min-w-lg min-h-[400px] cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
-                ? ' outline-black shadow-lg '
-                : ' outline-transparent hover:outline-stone-200'
+              className={`bg-white p-6 w-full lg:w-1/3 xl:w-1/4 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
+                ? 'outline-black shadow-lg'
+                : 'outline-transparent hover:outline-stone-200'
                 }`}
               onClick={() => setActivePair(pair.id)}
             >
