@@ -8,7 +8,7 @@ import { FontSelector } from './font-selector'
 import { useFontPairStore } from '@/lib/store'
 
 export function Sidebar() {
-  const { fontPairs, addFontPair, deleteFontPair, updateFontPair } = useFontPairStore()
+  const { fontPairs, activePairId, addFontPair, deleteFontPair, updateFontPair, setActivePair } = useFontPairStore()
 
   const handleNameChange = (id: string, name: string) => {
     updateFontPair(id, { name })
@@ -36,20 +36,33 @@ export function Sidebar() {
         </Button>
       </div>
 
-      <div className="flex-1 space-y-10 p-4 pb-16">
+      <div className="flex-1 space-y-4 p-4 pb-16">
         {fontPairs.map((pair) => (
-          <div key={pair.id} className='space-y-4'>
+          <Card
+            key={pair.id}
+            className={`space-y-4 p-4 rounded-lg cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
+              ? 'outline-black bg-stone-50 shadow-lg'
+              : 'outline-transparent hover:outline-stone-200'
+              }`}
+            onClick={() => setActivePair(pair.id)}
+          >
             <div className="flex items-center justify-between ">
               <Input
                 value={pair.name}
-                onChange={(e) => handleNameChange(pair.id, e.target.value)}
+                onChange={(e) => {
+                  e.stopPropagation()
+                  handleNameChange(pair.id, e.target.value)
+                }}
                 className="font-medium text-sm border-none px-0 h-auto shadow-none focus-visible:ring-0"
               />
               {fontPairs.length > 1 && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => deleteFontPair(pair.id)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deleteFontPair(pair.id)
+                  }}
                   className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -78,7 +91,7 @@ export function Sidebar() {
                 />
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>
