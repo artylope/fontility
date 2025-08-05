@@ -84,10 +84,8 @@ export function Sidebar() {
   }
 
   return (
-    <div className="w-96 border-r border-stone-200 flex flex-col h-screen overflow-y-auto bg-stone-50 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
-
-
-      <div className="flex-1 space-y-4 py-4 px-4 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+    <div className="w-96 border-r border-stone-200 flex flex-col h-full overflow-y-auto bg-stone-50 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+      <div className="flex-1 space-y-4 py-4 px-4">
         {fontPairs.map((pair) => (
           <Card
             key={pair.id}

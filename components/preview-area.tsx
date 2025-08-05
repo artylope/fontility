@@ -136,9 +136,9 @@ export function PreviewArea() {
   }, [activePairId])
 
   return (
-    <div className="w-full flex-1 flex flex-col overflow-y-auto bg-stone-50 pb-12 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+    <div className="flex-1 h-full overflow-y-auto bg-stone-50 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
       {/* Content area */}
-      <div className="px-8 py-8 pb-16 flex-1 w-full">
+      <div className="px-8 py-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
           {fontPairs.map((pair) => (
             <Card
