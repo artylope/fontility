@@ -39,7 +39,7 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
 }
 
 export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) {
-  const fontId = `google-font-${fontFamily.replace(/\s+/g, '-')}`
+  const fontId = `google-font-${fontFamily.replace(/\s+/g, '-').toLowerCase()}`
   
   // Remove existing font link to reload with new weights
   const existingLink = document.getElementById(fontId)
@@ -48,48 +48,55 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
     console.log('Removed existing font link:', fontFamily)
   }
 
-  const weightQuery = weights.join(',')
-  // Properly encode the font family name for URLs
-  const encodedFontFamily = encodeURIComponent(fontFamily)
+  // Limit weights to avoid URL being too long - Google Fonts has limits
+  const limitedWeights = weights.slice(0, 5) // Max 5 weights
+  const weightQuery = limitedWeights.join(';')
+  
+  // Use the newer Google Fonts API format
+  const encodedFontFamily = fontFamily.replace(/\s+/g, '+')
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodedFontFamily}:wght@${weightQuery}&display=swap`
 
-  console.log('Loading font:', fontFamily, 'with weights:', weights, 'URL:', fontUrl)
+  console.log('Loading font:', fontFamily, 'with weights:', limitedWeights, 'URL:', fontUrl)
 
-  const link = document.createElement('link')
-  link.id = fontId
-  link.rel = 'stylesheet'
-  link.href = fontUrl
+  // Try fetching first to check if font exists
+  fetch(fontUrl, { method: 'HEAD' })
+    .then(response => {
+      if (!response.ok) {
+        console.error('Font not available:', fontFamily, 'Status:', response.status)
+        return
+      }
+      
+      // Font exists, create link element
+      const link = document.createElement('link')
+      link.id = fontId
+      link.rel = 'stylesheet'
+      link.href = fontUrl
+      link.crossOrigin = 'anonymous' // Add CORS support
 
-  // Add error handling
-  link.onerror = () => {
-    console.error('Failed to load font:', fontFamily, 'URL:', fontUrl)
-  }
-  
-  link.onload = () => {
-    console.log('Successfully loaded font:', fontFamily)
-  }
+      // Add error handling
+      link.onerror = (event) => {
+        console.error('Failed to load font CSS:', fontFamily, 'Event:', event)
+      }
+      
+      link.onload = () => {
+        console.log('Successfully loaded font CSS:', fontFamily)
+        
+        // Try to load the actual font
+        if ('fonts' in document) {
+          document.fonts.load(`${limitedWeights[0]} 16px "${fontFamily}"`).then(() => {
+            console.log('Font face loaded successfully:', fontFamily)
+          }).catch((error) => {
+            console.error('Font face loading failed:', fontFamily, error)
+          })
+        }
+      }
 
-  document.head.appendChild(link)
-  console.log('Font link added to document head:', fontId)
-  
-  // Use Font Loading API if available, otherwise fallback to timeout
-  if ('fonts' in document) {
-    document.fonts.load(`${weights[0]} 16px "${fontFamily}"`).then(() => {
-      console.log('Font loaded via Font Loading API:', fontFamily)
-    }).catch((error) => {
-      console.error('Font loading failed via Font Loading API:', fontFamily, error)
+      document.head.appendChild(link)
+      console.log('Font link added to document head:', fontId)
     })
-  } else {
-    // Fallback: Force browser to load the font by creating a temporary element
-    const testDiv = document.createElement('div')
-    testDiv.style.fontFamily = `"${fontFamily}"`
-    testDiv.style.position = 'absolute'
-    testDiv.style.visibility = 'hidden'
-    testDiv.style.fontSize = '1px'
-    testDiv.textContent = 'test'
-    document.body.appendChild(testDiv)
-    setTimeout(() => document.body.removeChild(testDiv), 100)
-  }
+    .catch(error => {
+      console.error('Error checking font availability:', fontFamily, error)
+    })
 }
 
 export function getFontWeights(font: GoogleFont): string[] {
@@ -108,7 +115,7 @@ export function getFontWeights(font: GoogleFont): string[] {
 // Check if a font is available via Google Fonts API
 export async function validateGoogleFont(fontFamily: string): Promise<boolean> {
   try {
-    const encodedFontFamily = encodeURIComponent(fontFamily)
+    const encodedFontFamily = fontFamily.replace(/\s+/g, '+')
     const testUrl = `https://fonts.googleapis.com/css2?family=${encodedFontFamily}:wght@400&display=swap`
     
     const response = await fetch(testUrl, { method: 'HEAD' })
