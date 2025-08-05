@@ -85,27 +85,9 @@ export function Sidebar() {
 
   return (
     <div className="w-96 border-r border-stone-200 flex flex-col h-screen overflow-y-auto bg-stone-50 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
-      <div className="flex items-center justify-between p-6 sticky top-0 bg-gradient-to-b from-stone-50 to-transparent ">
-        <div className="flex items-center gap-2 w-full">
-          <Button
-            onClick={randomizeAllFontPairs}
-            size="sm"
-            variant="outline"
-            className="gap-2 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 w-1/2"
-            title="Randomize all font pairs"
-            disabled={allFonts.length === 0}
-          >
-            <Dices className="w-4 h-4" />
-            Randomize All
-          </Button>
-          <Button onClick={addFontPair} size="sm" className="gap-2 w-1/2">
-            <Plus className="w-4 h-4" />
-            Add Set
-          </Button>
-        </div>
-      </div>
 
-      <div className="flex-1 space-y-4 pb-16 px-4 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+
+      <div className="flex-1 space-y-4 py-4 px-4 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
         {fontPairs.map((pair) => (
           <Card
             key={pair.id}
