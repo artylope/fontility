@@ -30,11 +30,13 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
     name: 'Set 1',
     headingFont: {
       family: 'Inter',
-      weight: '700'
+      weight: '700',
+      category: 'sans-serif'
     },
     bodyFont: {
       family: 'Inter',
-      weight: '400'
+      weight: '400',
+      category: 'sans-serif'
     }
   }],
   activePairId: '1',
@@ -47,11 +49,13 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
       name: `Set ${fontPairs.length + 1}`,
       headingFont: {
         family: 'Inter',
-        weight: '700'
+        weight: '700',
+        category: 'sans-serif'
       },
       bodyFont: {
         family: 'Inter',
-        weight: '400'
+        weight: '400',
+        category: 'sans-serif'
       }
     }
     set({ fontPairs: [...fontPairs, newPair], activePairId: newId })

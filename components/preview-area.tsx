@@ -68,7 +68,7 @@ export function PreviewArea() {
 
               <div
                 key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
-                className="text-4xl leading-tight text-stone-900 tracking-tight text-balance"
+                className="text-[2.6em] leading-tight text-stone-900 tracking-tight text-balance"
                 style={{
                   fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
                   fontWeight: pair.headingFont.weight
@@ -79,7 +79,7 @@ export function PreviewArea() {
 
               <div
                 key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
-                className="text-sm leading-relaxed text-stone-600"
+                className="leading-relaxed text-stone-600"
                 style={{
                   fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
                   fontWeight: pair.bodyFont.weight

@@ -19,13 +19,50 @@ interface FontSelectorProps {
 export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: FontSelectorProps) {
   const [open, setOpen] = useState(false)
   const [fonts, setFonts] = useState<GoogleFont[]>([])
+  const [popularFonts, setPopularFonts] = useState<GoogleFont[]>([])
+  const [alphabeticalFonts, setAlphabeticalFonts] = useState<GoogleFont[]>([])
   const [loading, setLoading] = useState(true)
+  const [fontsLoaded, setFontsLoaded] = useState(false)
   const [selectedFont, setSelectedFont] = useState<GoogleFont | null>(null)
 
   useEffect(() => {
+    // Load default fonts immediately for common fonts like Inter
+    if (fontFamily === 'Inter') {
+      const interFont: GoogleFont = {
+        family: 'Inter',
+        variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+        category: 'sans-serif'
+      }
+      setSelectedFont(interFont)
+      loadGoogleFont('Inter', ['100', '200', '300', '400', '500', '600', '700', '800', '900'])
+    }
+
     fetchGoogleFonts().then((googleFonts) => {
       setFonts(googleFonts)
+      
+      // Get top 20 popular fonts (already sorted by popularity from API)
+      const top20 = googleFonts.slice(0, 20)
+      setPopularFonts(top20)
+      
+      // Sort ALL fonts alphabetically for the second section
+      const allFontsAlphabetical = [...googleFonts].sort((a, b) => a.family.localeCompare(b.family))
+      // Remove the top 20 popular fonts from the alphabetical list to avoid duplicates
+      const top20Names = new Set(top20.map(f => f.family))
+      const alphabeticalOnly = allFontsAlphabetical.filter(font => !top20Names.has(font.family))
+      setAlphabeticalFonts(alphabeticalOnly)
+      
       setLoading(false)
+      
+      // Load all fonts immediately for preview
+      const allFontsToLoad = [...top20, ...alphabeticalOnly.slice(0, 50)] // Load first 50 alphabetical fonts
+      allFontsToLoad.forEach(font => {
+        loadGoogleFont(font.family, ['400'])
+      })
+      
+      // Set a reasonable timeout for fonts to load
+      setTimeout(() => {
+        setFontsLoaded(true)
+      }, 2000)
 
       const currentFont = googleFonts.find(f => f.family === fontFamily)
       console.log('FontSelector useEffect - fontFamily:', fontFamily, 'fontWeight:', fontWeight)
@@ -42,7 +79,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
           console.log('Weight not available, updating to:', newWeight)
           onFontChange(currentFont.family, newWeight, currentFont.category)
         }
-      } else if (fontFamily) {
+      } else if (fontFamily && fontFamily !== 'Inter') {
         // Fallback: create a basic font object if not found in API response
         const fallbackFont: GoogleFont = {
           family: fontFamily,
@@ -63,12 +100,29 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
   const handleFontSelect = (font: GoogleFont) => {
     console.log('Selecting font:', font.family, 'with weights:', font.variants)
     console.log('Current fontWeight before selection:', fontWeight)
+    
+    // Check if this font was in our pre-loaded batch
+    const allFontsToLoad = [...popularFonts, ...alphabeticalFonts.slice(0, 50)]
+    const wasPreloaded = allFontsToLoad.some(f => f.family === font.family)
+    
     setSelectedFont(font)
     setOpen(false)
+    
     // Load all available weights for the selected font
     const availableWeights = getFontWeights(font)
     console.log('Available weights for', font.family, ':', availableWeights)
+    
+    // Always load the font when selected, especially if it wasn't preloaded
     loadGoogleFont(font.family, availableWeights)
+    
+    if (!wasPreloaded) {
+      console.log('Font was not preloaded, ensuring it loads:', font.family)
+      // Force reload with a slight delay to ensure it loads properly
+      setTimeout(() => {
+        loadGoogleFont(font.family, availableWeights)
+      }, 100)
+    }
+    
     // Check if current weight is available, otherwise use first available weight
     const newWeight = availableWeights.includes(fontWeight) ? fontWeight : availableWeights[0]
     console.log('Using weight:', newWeight, 'for font:', font.family)
@@ -81,7 +135,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
       // Ensure we have all available weights loaded, including the new one
       const availableWeights = getFontWeights(selectedFont)
       console.log('Available weights:', availableWeights)
-      
+
       if (availableWeights.includes(weight)) {
         // Load the font with all available weights to ensure the selected weight is available
         loadGoogleFont(selectedFont.family, availableWeights)
@@ -105,10 +159,11 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
               variant="outline"
               role="combobox"
               aria-expanded={open}
+              disabled={loading}
               className="w-full justify-between h-auto"
             >
               <span className="text-sm text-stone-900">
-                {selectedFont?.family || 'Select font...'}
+                {loading ? 'Loading fonts...' : selectedFont?.family || 'Select font...'}
               </span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -120,24 +175,67 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                 <CommandEmpty>
                   {loading ? 'Loading fonts...' : 'No fonts found.'}
                 </CommandEmpty>
-                <CommandGroup>
-                  {fonts.slice(0, 200).map((font) => (
-                    <CommandItem
-                      key={font.family}
-                      value={font.family}
-                      onSelect={() => handleFontSelect(font)}
-                      className="flex items-center justify-between p-3"
-                    >
-                      <span className="font-medium">{font.family}</span>
-                      <Check
-                        className={cn(
-                          "ml-2 h-4 w-4",
-                          selectedFont?.family === font.family ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {loading && (
+                  <div className="flex items-center justify-center p-8">
+                    <div className="text-sm text-muted-foreground">Loading fonts...</div>
+                  </div>
+                )}
+                {!loading && popularFonts.length > 0 && (
+                  <CommandGroup heading="Popular Fonts">
+                    {popularFonts.map((font) => (
+                      <CommandItem
+                        key={font.family}
+                        value={font.family}
+                        onSelect={() => handleFontSelect(font)}
+                        className="flex items-center justify-between p-3"
+                      >
+                        <span 
+                          className="font-medium"
+                          style={{ fontFamily: `"${font.family}", sans-serif` }}
+                        >
+                          {font.family}
+                        </span>
+                        <Check
+                          className={cn(
+                            "ml-2 h-4 w-4",
+                            selectedFont?.family === font.family ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {!loading && alphabeticalFonts.length > 0 && (
+                  <CommandGroup heading="All Fonts (A-Z)">
+                    {alphabeticalFonts.map((font, index) => (
+                      <CommandItem
+                        key={font.family}
+                        value={font.family}
+                        onSelect={() => handleFontSelect(font)}
+                        className="flex items-center justify-between p-3"
+                      >
+                        <span 
+                          className="font-medium"
+                          style={{ fontFamily: `"${font.family}", sans-serif` }}
+                          onMouseEnter={() => {
+                            // Load font on hover if not already in the first 50
+                            if (index >= 50) {
+                              loadGoogleFont(font.family, ['400'])
+                            }
+                          }}
+                        >
+                          {font.family}
+                        </span>
+                        <Check
+                          className={cn(
+                            "ml-2 h-4 w-4",
+                            selectedFont?.family === font.family ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
@@ -147,6 +245,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
           <SelectTrigger className='w-full'>
             <SelectValue placeholder="Select weight" className='text-stone-900'>
               {(() => {
+                console.log('SelectValue rendering - fontWeight:', fontWeight, 'selectedFont:', selectedFont?.family)
                 const weightNames: Record<string, string> = {
                   '100': '100 Thin',
                   '200': '200 Extra Light',
@@ -158,7 +257,9 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                   '800': '800 Extra Bold',
                   '900': '900 Black'
                 }
-                return weightNames[fontWeight] || fontWeight
+                const displayValue = weightNames[fontWeight] || fontWeight
+                console.log('SelectValue display value:', displayValue)
+                return displayValue
               })()}
             </SelectValue>
           </SelectTrigger>
