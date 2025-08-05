@@ -166,14 +166,14 @@ export function PreviewArea() {
 
       {/* Content area */}
       <div className="px-8 pb-16 flex-1 w-full">
-        <div className="flex flex-wrap gap-6 justify-start w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
           {fontPairs.map((pair) => (
             <Card
               key={pair.id}
               ref={(el) => {
                 cardRefs.current[pair.id] = el
               }}
-              className={`bg-white p-6 w-full lg:w-1/3 xl:w-1/4 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
+              className={`bg-white p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col min-w-0 w-fulllg:min-w-lg ${activePairId === pair.id
                 ? 'outline-black shadow-lg'
                 : 'outline-transparent hover:outline-stone-200'
                 }`}
