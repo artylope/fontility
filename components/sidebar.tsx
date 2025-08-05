@@ -1,14 +1,21 @@
 'use client'
 
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Shuffle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { FontSelector } from './font-selector'
 import { useFontPairStore } from '@/lib/store'
+import { useState, useEffect } from 'react'
+import { GoogleFont, fetchGoogleFonts, getFontWeights } from '@/lib/google-fonts'
 
 export function Sidebar() {
   const { fontPairs, activePairId, addFontPair, deleteFontPair, updateFontPair, setActivePair } = useFontPairStore()
+  const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
+  
+  useEffect(() => {
+    fetchGoogleFonts().then(setAllFonts)
+  }, [])
 
   const handleNameChange = (id: string, name: string) => {
     updateFontPair(id, { name })
@@ -23,6 +30,38 @@ export function Sidebar() {
   const handleBodyFontChange = (id: string, family: string, weight: string, category?: string) => {
     updateFontPair(id, {
       bodyFont: { family, weight, category }
+    })
+  }
+
+  const randomizeFontPair = (id: string) => {
+    if (allFonts.length === 0) return
+    
+    // Get two random fonts
+    const randomIndex1 = Math.floor(Math.random() * Math.min(allFonts.length, 100)) // Top 100 fonts for better quality
+    const randomIndex2 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
+    
+    const headingFont = allFonts[randomIndex1]
+    const bodyFont = allFonts[randomIndex2]
+    
+    // Get random weights for each font
+    const headingWeights = getFontWeights(headingFont)
+    const bodyWeights = getFontWeights(bodyFont)
+    
+    const randomHeadingWeight = headingWeights[Math.floor(Math.random() * headingWeights.length)]
+    const randomBodyWeight = bodyWeights[Math.floor(Math.random() * bodyWeights.length)]
+    
+    // Update the font pair
+    updateFontPair(id, {
+      headingFont: {
+        family: headingFont.family,
+        weight: randomHeadingWeight,
+        category: headingFont.category
+      },
+      bodyFont: {
+        family: bodyFont.family,
+        weight: randomBodyWeight,
+        category: bodyFont.category
+      }
     })
   }
 
@@ -55,19 +94,34 @@ export function Sidebar() {
                 }}
                 className="font-medium text-sm border-none px-0 h-auto shadow-none focus-visible:ring-0"
               />
-              {fontPairs.length > 1 && (
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation()
-                    deleteFontPair(pair.id)
+                    randomizeFontPair(pair.id)
                   }}
-                  className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                  className="h-6 w-6 p-0 hover:bg-blue-100 hover:text-blue-600"
+                  title="Randomize font pairing"
+                  disabled={allFonts.length === 0}
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <Shuffle className="w-3 h-3" />
                 </Button>
-              )}
+                {fontPairs.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      deleteFontPair(pair.id)
+                    }}
+                    className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-4">
