@@ -28,7 +28,7 @@ export function Sidebar() {
 
   return (
     <div className="w-96 border-r border-stone-200 flex flex-col h-screen overflow-y-auto">
-      <div className="flex items-center justify-between p-4 sticky top-0 bg-stone-50">
+      <div className="flex items-center justify-between p-4 sticky top-0">
         <h2 className="text-lg font-semibold">Font Pairs</h2>
         <Button onClick={addFontPair} size="sm" className="gap-2">
           <Plus className="w-4 h-4" />
