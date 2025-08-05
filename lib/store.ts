@@ -6,10 +6,12 @@ export interface FontPair {
   headingFont: {
     family: string
     weight: string
+    category?: string
   }
   bodyFont: {
     family: string
     weight: string
+    category?: string
   }
 }
 
@@ -36,7 +38,7 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
     }
   }],
   activePairId: '1',
-  
+
   addFontPair: () => {
     const { fontPairs } = get()
     const newId = (fontPairs.length + 1).toString()
@@ -54,16 +56,16 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
     }
     set({ fontPairs: [...fontPairs, newPair], activePairId: newId })
   },
-  
+
   deleteFontPair: (id: string) => {
     const { fontPairs, activePairId } = get()
     const newFontPairs = fontPairs.filter(pair => pair.id !== id)
-    const newActivePairId = activePairId === id ? 
-      (newFontPairs.length > 0 ? newFontPairs[0].id : null) : 
+    const newActivePairId = activePairId === id ?
+      (newFontPairs.length > 0 ? newFontPairs[0].id : null) :
       activePairId
     set({ fontPairs: newFontPairs, activePairId: newActivePairId })
   },
-  
+
   updateFontPair: (id: string, updates: Partial<Omit<FontPair, 'id'>>) => {
     set(state => ({
       fontPairs: state.fontPairs.map(pair =>
@@ -71,7 +73,7 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
       )
     }))
   },
-  
+
   setActivePair: (id: string) => {
     set({ activePairId: id })
   }

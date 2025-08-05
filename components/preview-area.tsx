@@ -1,15 +1,41 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { useFontPairStore } from '@/lib/store'
 
-const PREVIEW_HEADING = "Great typography guides the eye"
+// Helper function to get appropriate fallback font based on category
+function getFontFallback(category: string): string {
+  switch (category) {
+    case 'serif':
+      return 'serif'
+    case 'sans-serif':
+      return 'sans-serif'
+    case 'display':
+      return 'sans-serif'
+    case 'handwriting':
+      return 'cursive'
+    case 'monospace':
+      return 'monospace'
+    default:
+      return 'sans-serif'
+  }
+}
+
+const PREVIEW_HEADING = "Great typography guides the reader's eye"
 const PREVIEW_BODY = "Customize responsive typography systems for your fonts with meticulously designed editors for line height and letter spacing across font sizes and breakpoints."
 
 export function PreviewArea() {
   const { fontPairs, activePairId, setActivePair } = useFontPairStore()
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const [forceUpdate, setForceUpdate] = useState(0)
+
+  // Debug: Log when fontPairs changes
+  useEffect(() => {
+    console.log('PreviewArea - fontPairs updated:', fontPairs)
+    // Force a re-render to ensure fonts are applied
+    setForceUpdate(prev => prev + 1)
+  }, [fontPairs])
 
   useEffect(() => {
     if (activePairId && cardRefs.current[activePairId]) {
@@ -26,10 +52,12 @@ export function PreviewArea() {
         {fontPairs.map((pair) => (
           <Card
             key={pair.id}
-            ref={(el) => (cardRefs.current[pair.id] = el)}
+            ref={(el) => {
+              cardRefs.current[pair.id] = el
+            }}
             className={`p-6 max-w-lg cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
-                ? 'outline-black bg-stone-50 shadow-lg'
-                : 'outline-transparent hover:outline-stone-200'
+              ? 'outline-black bg-stone-50 shadow-lg'
+              : 'outline-transparent hover:outline-stone-200'
               }`}
             onClick={() => setActivePair(pair.id)}
           >
@@ -39,9 +67,10 @@ export function PreviewArea() {
               </div>
 
               <div
-                className="text-4xl leading-tight text-stone-900"
+                key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
+                className="text-4xl leading-tight text-stone-900 tracking-tight text-balance"
                 style={{
-                  fontFamily: pair.headingFont.family,
+                  fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
                   fontWeight: pair.headingFont.weight
                 }}
               >
@@ -49,9 +78,10 @@ export function PreviewArea() {
               </div>
 
               <div
+                key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
                 className="text-sm leading-relaxed text-stone-600"
                 style={{
-                  fontFamily: pair.bodyFont.family,
+                  fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
                   fontWeight: pair.bodyFont.weight
                 }}
               >

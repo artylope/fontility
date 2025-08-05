@@ -13,7 +13,7 @@ interface FontSelectorProps {
   label: string
   fontFamily: string
   fontWeight: string
-  onFontChange: (family: string, weight: string) => void
+  onFontChange: (family: string, weight: string, category?: string) => void
 }
 
 export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: FontSelectorProps) {
@@ -28,9 +28,20 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
       setLoading(false)
 
       const currentFont = googleFonts.find(f => f.family === fontFamily)
+      console.log('FontSelector useEffect - fontFamily:', fontFamily, 'fontWeight:', fontWeight)
+      console.log('Current font found:', currentFont?.family)
+
       if (currentFont) {
         setSelectedFont(currentFont)
-        loadGoogleFont(currentFont.family, [fontWeight])
+        const availableWeights = getFontWeights(currentFont)
+        console.log('Available weights for', currentFont.family, ':', availableWeights)
+        loadGoogleFont(currentFont.family, availableWeights)
+        // Check if current weight is available, if not update to first available weight
+        if (!availableWeights.includes(fontWeight)) {
+          const newWeight = availableWeights[0]
+          console.log('Weight not available, updating to:', newWeight)
+          onFontChange(currentFont.family, newWeight, currentFont.category)
+        }
       } else if (fontFamily) {
         // Fallback: create a basic font object if not found in API response
         const fallbackFont: GoogleFont = {
@@ -39,22 +50,46 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
           category: 'sans-serif'
         }
         setSelectedFont(fallbackFont)
-        loadGoogleFont(fontFamily, [fontWeight])
+        loadGoogleFont(fontFamily, ['400', '700'])
+        // Check if current weight is available, if not update to 400
+        if (!['400', '700'].includes(fontWeight)) {
+          console.log('Weight not available in fallback, updating to 400')
+          onFontChange(fontFamily, '400', 'sans-serif')
+        }
       }
     })
   }, [fontFamily, fontWeight])
 
   const handleFontSelect = (font: GoogleFont) => {
+    console.log('Selecting font:', font.family, 'with weights:', font.variants)
+    console.log('Current fontWeight before selection:', fontWeight)
     setSelectedFont(font)
     setOpen(false)
-    loadGoogleFont(font.family, [fontWeight])
-    onFontChange(font.family, fontWeight)
+    // Load all available weights for the selected font
+    const availableWeights = getFontWeights(font)
+    console.log('Available weights for', font.family, ':', availableWeights)
+    loadGoogleFont(font.family, availableWeights)
+    // Check if current weight is available, otherwise use first available weight
+    const newWeight = availableWeights.includes(fontWeight) ? fontWeight : availableWeights[0]
+    console.log('Using weight:', newWeight, 'for font:', font.family)
+    onFontChange(font.family, newWeight, font.category)
   }
 
   const handleWeightChange = (weight: string) => {
     if (selectedFont) {
-      loadGoogleFont(selectedFont.family, [weight])
-      onFontChange(selectedFont.family, weight)
+      console.log('Weight change requested:', weight, 'for font:', selectedFont.family)
+      // Ensure we have all available weights loaded, including the new one
+      const availableWeights = getFontWeights(selectedFont)
+      console.log('Available weights:', availableWeights)
+      
+      if (availableWeights.includes(weight)) {
+        // Load the font with all available weights to ensure the selected weight is available
+        loadGoogleFont(selectedFont.family, availableWeights)
+        console.log('Calling onFontChange with:', selectedFont.family, weight, selectedFont.category)
+        onFontChange(selectedFont.family, weight, selectedFont.category)
+      } else {
+        console.warn('Weight not available:', weight, 'for font:', selectedFont.family)
+      }
     }
   }
 

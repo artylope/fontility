@@ -14,15 +14,15 @@ export function Sidebar() {
     updateFontPair(id, { name })
   }
 
-  const handleHeadingFontChange = (id: string, family: string, weight: string) => {
+  const handleHeadingFontChange = (id: string, family: string, weight: string, category?: string) => {
     updateFontPair(id, {
-      headingFont: { family, weight }
+      headingFont: { family, weight, category }
     })
   }
 
-  const handleBodyFontChange = (id: string, family: string, weight: string) => {
+  const handleBodyFontChange = (id: string, family: string, weight: string, category?: string) => {
     updateFontPair(id, {
-      bodyFont: { family, weight }
+      bodyFont: { family, weight, category }
     })
   }
 
@@ -77,7 +77,7 @@ export function Sidebar() {
                   label=""
                   fontFamily={pair.headingFont.family}
                   fontWeight={pair.headingFont.weight}
-                  onFontChange={(family, weight) => handleHeadingFontChange(pair.id, family, weight)}
+                  onFontChange={(family, weight, category) => handleHeadingFontChange(pair.id, family, weight, category)}
                 />
               </div>
 
@@ -87,7 +87,7 @@ export function Sidebar() {
                   label=""
                   fontFamily={pair.bodyFont.family}
                   fontWeight={pair.bodyFont.weight}
-                  onFontChange={(family, weight) => handleBodyFontChange(pair.id, family, weight)}
+                  onFontChange={(family, weight, category) => handleBodyFontChange(pair.id, family, weight, category)}
                 />
               </div>
             </div>
