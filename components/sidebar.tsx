@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, Trash2, Shuffle } from 'lucide-react'
+import { Plus, Trash2, Dices } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,7 @@ import { GoogleFont, fetchGoogleFonts, getFontWeights } from '@/lib/google-fonts
 export function Sidebar() {
   const { fontPairs, activePairId, addFontPair, deleteFontPair, updateFontPair, setActivePair } = useFontPairStore()
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
-  
+
   useEffect(() => {
     fetchGoogleFonts().then(setAllFonts)
   }, [])
@@ -35,21 +35,21 @@ export function Sidebar() {
 
   const randomizeFontPair = (id: string) => {
     if (allFonts.length === 0) return
-    
+
     // Get two random fonts
     const randomIndex1 = Math.floor(Math.random() * Math.min(allFonts.length, 100)) // Top 100 fonts for better quality
     const randomIndex2 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
-    
+
     const headingFont = allFonts[randomIndex1]
     const bodyFont = allFonts[randomIndex2]
-    
+
     // Get random weights for each font
     const headingWeights = getFontWeights(headingFont)
     const bodyWeights = getFontWeights(bodyFont)
-    
+
     const randomHeadingWeight = headingWeights[Math.floor(Math.random() * headingWeights.length)]
     const randomBodyWeight = bodyWeights[Math.floor(Math.random() * bodyWeights.length)]
-    
+
     // Update the font pair
     updateFontPair(id, {
       headingFont: {
@@ -106,7 +106,7 @@ export function Sidebar() {
                   title="Randomize font pairing"
                   disabled={allFonts.length === 0}
                 >
-                  <Shuffle className="w-3 h-3" />
+                  <Dices className="w-3 h-3" />
                 </Button>
                 {fontPairs.length > 1 && (
                   <Button

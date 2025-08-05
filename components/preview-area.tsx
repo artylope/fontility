@@ -47,58 +47,64 @@ export function PreviewArea() {
   }, [activePairId])
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto">
-      <div className="flex flex-wrap gap-6 justify-center">
-        {fontPairs.map((pair) => (
-          <Card
-            key={pair.id}
-            ref={(el) => {
-              cardRefs.current[pair.id] = el
-            }}
-            className={`p-6 max-w-lg cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
-              ? 'outline-black bg-stone-50 shadow-lg'
-              : 'outline-transparent hover:outline-stone-200'
-              }`}
-            onClick={() => setActivePair(pair.id)}
-          >
-            <div className="space-y-4">
-              <div className="text-xs text-stone-500 uppercase tracking-wider">
-                {pair.name}
-              </div>
+    <div className="flex-1 p-8 overflow-y-scroll">
+      <div className="flex flex-wrap gap-6 justify-center items-center ">
+        <div className="flex flex-wrap gap-6">
+          {fontPairs.map((pair) => (
+            <Card
+              key={pair.id}
+              ref={(el) => {
+                cardRefs.current[pair.id] = el
+              }}
+              className={`p-6 max-w-lg min-h-[400px] cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
+                ? 'outline-black bg-stone-50 shadow-lg'
+                : 'outline-transparent hover:outline-stone-200'
+                }`}
+              onClick={() => setActivePair(pair.id)}
+            >
+              <div className="flex flex-col h-full">
+                {/* Display text that fills available space */}
+                <div className="flex-1 flex flex-col">
+                  <div className="text-xs text-stone-500 uppercase tracking-wider mb-4">
+                    {pair.name}
+                  </div>
 
-              <div
-                key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
-                className="text-[2.6em] leading-tight text-stone-900 tracking-tight text-balance"
-                style={{
-                  fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
-                  fontWeight: pair.headingFont.weight
-                }}
-              >
-                {PREVIEW_HEADING}
-              </div>
+                  <div
+                    key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
+                    className="text-[2.6em] leading-tight text-stone-900 tracking-tight text-balance"
+                    style={{
+                      fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
+                      fontWeight: pair.headingFont.weight
+                    }}
+                  >
+                    {PREVIEW_HEADING}
+                  </div>
 
-              <div
-                key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
-                className="leading-relaxed text-stone-600"
-                style={{
-                  fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
-                  fontWeight: pair.bodyFont.weight
-                }}
-              >
-                {PREVIEW_BODY}
-              </div>
-
-              <div className="pt-4 border-t border-stone-100 text-xs text-stone-500 space-y-1">
-                <div>
-                  <span className="font-medium ">Heading:</span> {pair.headingFont.family} {pair.headingFont.weight}
+                  <div
+                    key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
+                    className="leading-relaxed text-stone-600 mt-4"
+                    style={{
+                      fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
+                      fontWeight: pair.bodyFont.weight
+                    }}
+                  >
+                    {PREVIEW_BODY}
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Body:</span> {pair.bodyFont.family} {pair.bodyFont.weight}
+
+                {/* Metadata that sits at the bottom */}
+                <div className="pt-4 border-t border-stone-100 text-xs text-stone-500 space-y-1 mt-auto">
+                  <div>
+                    <span className="font-medium">Heading:</span> {pair.headingFont.family} {pair.headingFont.weight}
+                  </div>
+                  <div>
+                    <span className="font-medium">Body:</span> {pair.bodyFont.family} {pair.bodyFont.weight}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   )
