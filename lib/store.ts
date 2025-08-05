@@ -18,7 +18,7 @@ export interface FontPair {
 interface FontPairStore {
   fontPairs: FontPair[]
   activePairId: string | null
-  addFontPair: () => void
+  addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>) => void
   deleteFontPair: (id: string) => void
   updateFontPair: (id: string, updates: Partial<Omit<FontPair, 'id'>>) => void
   setActivePair: (id: string) => void
@@ -41,12 +41,10 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
   }],
   activePairId: '1',
 
-  addFontPair: () => {
+  addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>) => {
     const { fontPairs } = get()
     const newId = (fontPairs.length + 1).toString()
-    const newPair: FontPair = {
-      id: newId,
-      name: `Set ${fontPairs.length + 1}`,
+    const defaultPair = {
       headingFont: {
         family: 'Inter',
         weight: '700',
@@ -57,6 +55,13 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
         weight: '400',
         category: 'sans-serif'
       }
+    }
+    
+    const newPair: FontPair = {
+      id: newId,
+      name: `Set ${fontPairs.length + 1}`,
+      ...defaultPair,
+      ...customPair
     }
     set({ fontPairs: [...fontPairs, newPair], activePairId: newId })
   },

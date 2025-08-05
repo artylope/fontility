@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Dices, Plus } from 'lucide-react'
+import { Dices } from 'lucide-react'
 import { useFontPairStore } from '@/lib/store'
 import { loadGoogleFont, getFontWeights, fetchGoogleFonts, GoogleFont } from '@/lib/google-fonts'
 
@@ -30,7 +30,7 @@ const PREVIEW_HEADING = "Great typography guides the reader's eye"
 const PREVIEW_BODY = "Customize responsive typography systems for your fonts with meticulously designed editors for line height and letter spacing across font sizes and breakpoints."
 
 export function PreviewArea() {
-  const { fontPairs, activePairId, setActivePair, updateFontPair, addFontPair } = useFontPairStore()
+  const { fontPairs, activePairId, setActivePair, updateFontPair } = useFontPairStore()
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const [forceUpdate, setForceUpdate] = useState(0)
   const [loadingFonts, setLoadingFonts] = useState<Set<string>>(new Set())
@@ -73,13 +73,6 @@ export function PreviewArea() {
     })
   }
 
-  const randomizeAllFontPairs = () => {
-    if (allFonts.length === 0) return
-
-    fontPairs.forEach(pair => {
-      randomizeFontPair(pair.id)
-    })
-  }
 
   // Load fonts when fontPairs changes, but only for changed pairs
   useEffect(() => {
@@ -143,29 +136,9 @@ export function PreviewArea() {
   }, [activePairId])
 
   return (
-    <div className="w-full flex-1 flex flex-col overflow-y-auto bg-stone-50  pb-12 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
-      {/* Header with buttons */}
-      <div className="sticky top-0 p-8 py-4 pb-4 flex justify-start gap-2">
-
-        <Button onClick={addFontPair} size="sm" className="gap-2">
-          <Plus className="w-4 h-4" />
-          Add Set
-        </Button>          <Button
-          onClick={randomizeAllFontPairs}
-          size="sm"
-          variant="outline"
-          className="gap-2 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600"
-          title="Randomize all font pairs"
-          disabled={allFonts.length === 0}
-        >
-          <Dices className="w-4 h-4" />
-          Randomize All
-        </Button>
-
-      </div>
-
+    <div className="w-full flex-1 flex flex-col overflow-y-auto bg-stone-50 pb-12 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
       {/* Content area */}
-      <div className="px-8 pb-16 flex-1 w-full">
+      <div className="px-8 py-8 pb-16 flex-1 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
           {fontPairs.map((pair) => (
             <Card
