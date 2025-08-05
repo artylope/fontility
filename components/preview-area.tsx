@@ -135,7 +135,7 @@ export function PreviewArea() {
   }, [activePairId])
 
   return (
-    <div className="flex-1 p-8 overflow-y-scroll bg-stone-50">
+    <div className="flex-1 p-8 pb-16 overflow-y-scroll bg-stone-50 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
       <div className="flex flex-wrap gap-6 justify-center items-center ">
         <div className="flex flex-wrap gap-6 w-full">
           {fontPairs.map((pair) => (
