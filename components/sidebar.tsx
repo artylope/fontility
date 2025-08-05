@@ -27,8 +27,8 @@ export function Sidebar() {
   }
 
   return (
-    <div className="w-96 bg-stone-50 border-r border-stone-200 p-4 flex flex-col h-screen">
-      <div className="flex items-center justify-between mb-6">
+    <div className="w-96 border-r border-stone-200 flex flex-col h-screen overflow-y-auto">
+      <div className="flex items-center justify-between p-4 sticky top-0 bg-stone-50">
         <h2 className="text-lg font-semibold">Font Pairs</h2>
         <Button onClick={addFontPair} size="sm" className="gap-2">
           <Plus className="w-4 h-4" />
@@ -36,10 +36,10 @@ export function Sidebar() {
         </Button>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto">
+      <div className="flex-1 space-y-10 p-4 pb-16">
         {fontPairs.map((pair) => (
-          <Card key={pair.id} className="p-4">
-            <div className="flex items-center justify-between">
+          <div key={pair.id} className='space-y-4'>
+            <div className="flex items-center justify-between ">
               <Input
                 value={pair.name}
                 onChange={(e) => handleNameChange(pair.id, e.target.value)}
@@ -78,7 +78,7 @@ export function Sidebar() {
                 />
               </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </div>
