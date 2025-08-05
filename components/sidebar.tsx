@@ -6,16 +6,26 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { FontSelector } from './font-selector'
 import { useFontPairStore } from '@/lib/store'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { GoogleFont, fetchGoogleFonts, getFontWeights } from '@/lib/google-fonts'
 
 export function Sidebar() {
   const { fontPairs, activePairId, addFontPair, deleteFontPair, updateFontPair, setActivePair } = useFontPairStore()
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
+  const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   useEffect(() => {
     fetchGoogleFonts().then(setAllFonts)
   }, [])
+
+  useEffect(() => {
+    if (activePairId && cardRefs.current[activePairId]) {
+      cardRefs.current[activePairId]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
+    }
+  }, [activePairId])
 
   const handleNameChange = (id: string, name: string) => {
     updateFontPair(id, { name })
@@ -65,34 +75,60 @@ export function Sidebar() {
     })
   }
 
+  const randomizeAllFontPairs = () => {
+    if (allFonts.length === 0) return
+
+    fontPairs.forEach(pair => {
+      randomizeFontPair(pair.id)
+    })
+  }
+
   return (
-    <div className="w-96 border-r border-stone-200 flex flex-col h-screen overflow-y-auto">
-      <div className="flex items-center justify-between p-4 sticky top-0">
+    <div className="w-96 border-r border-stone-200 flex flex-col h-screen overflow-y-auto bg-stone-50">
+      <div className="flex items-center justify-between p-4 sticky top-0 bg-white">
         <h2 className="text-lg font-semibold">Font Pairs</h2>
-        <Button onClick={addFontPair} size="sm" className="gap-2">
-          <Plus className="w-4 h-4" />
-          Add Set
+        <div className="flex items-center gap-2">
+
+          <Button onClick={addFontPair} size="sm" className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add Set
+          </Button>
+        </div>
+      </div>
+      <div className="px-4 pb-4">
+        <Button
+          onClick={randomizeAllFontPairs}
+          size="sm"
+          variant="outline"
+          className="gap-2 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 w-full"
+          title="Randomize all font pairs"
+          disabled={allFonts.length === 0}
+        >
+          <Dices className="w-4 h-4" />
+          Randomize All
         </Button>
       </div>
-
-      <div className="flex-1 space-y-4 p-4 pb-16">
+      <div className="flex-1 space-y-4 pb-16 px-2">
         {fontPairs.map((pair) => (
           <Card
             key={pair.id}
-            className={`space-y-4 p-4 rounded-lg cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
-              ? 'outline-black bg-stone-50 shadow-lg'
-              : 'outline-transparent hover:outline-stone-200'
+            ref={(el) => {
+              cardRefs.current[pair.id] = el
+            }}
+            className={`space-y-1 p-3 pb-4 border-none shadow-none cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
+              ? 'bg-white outline-black shadow-lg'
+              : 'bg-stone-50 outline-transparent hover:outline-stone-200'
               }`}
             onClick={() => setActivePair(pair.id)}
           >
-            <div className="flex items-center justify-between ">
+            <div className="flex items-center justify-between">
               <Input
                 value={pair.name}
                 onChange={(e) => {
                   e.stopPropagation()
                   handleNameChange(pair.id, e.target.value)
                 }}
-                className="font-medium text-sm border-none px-0 h-auto shadow-none focus-visible:ring-0"
+                className="font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0"
               />
               <div className="flex items-center gap-1">
                 <Button
