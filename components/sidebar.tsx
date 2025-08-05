@@ -53,12 +53,23 @@ export function Sidebar() {
     const headingFont = allFonts[randomIndex1]
     const bodyFont = allFonts[randomIndex2]
 
-    // Get random weights for each font
+    // Get available weights for each font
     const headingWeights = getFontWeights(headingFont)
     const bodyWeights = getFontWeights(bodyFont)
 
-    const randomHeadingWeight = headingWeights[Math.floor(Math.random() * headingWeights.length)]
-    const randomBodyWeight = bodyWeights[Math.floor(Math.random() * bodyWeights.length)]
+    // Filter body weights to be 300-400 range
+    const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
+    const finalBodyWeights = bodyWeightOptions.length > 0 ? bodyWeightOptions : bodyWeights.filter(weight => parseInt(weight) <= 400)
+
+    // Filter heading weights to be 400-900 range and always bolder than body
+    const randomBodyWeight = finalBodyWeights[Math.floor(Math.random() * finalBodyWeights.length)]
+    const bodyWeightNum = parseInt(randomBodyWeight)
+    const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= Math.max(400, bodyWeightNum + 100) && parseInt(weight) <= 900)
+    const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights.filter(weight => parseInt(weight) > bodyWeightNum)
+
+    const randomHeadingWeight = finalHeadingWeights.length > 0
+      ? finalHeadingWeights[Math.floor(Math.random() * finalHeadingWeights.length)]
+      : headingWeights[headingWeights.length - 1] // fallback to boldest available
 
     // Update the font pair
     updateFontPair(id, {
@@ -84,7 +95,7 @@ export function Sidebar() {
   }
 
   return (
-    <div className="w-96 border-r border-stone-200 flex flex-col h-full overflow-y-auto bg-stone-50 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+    <div className="w-96 border-r border-stone-200 flex flex-col h-full overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
       <div className="flex-1 space-y-4 py-4 px-4">
         {fontPairs.map((pair) => (
           <Card
@@ -94,7 +105,7 @@ export function Sidebar() {
             }}
             className={`space-y-1 p-3 pb-4 border-none shadow-none cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
               ? 'bg-white outline-black shadow-lg'
-              : 'bg-stone-50 outline-transparent hover:outline-stone-200'
+              : 'outline-transparent hover:outline-stone-200'
               }`}
             onClick={() => setActivePair(pair.id)}
           >
