@@ -84,7 +84,7 @@ export function Sidebar() {
   }
 
   return (
-    <div className="w-96 border-r border-stone-200 flex flex-col h-screen overflow-y-auto ">
+    <div className="w-96 border-r border-stone-200 flex flex-col h-screen overflow-y-auto bg-stone-50">
       <div className="flex items-center justify-between p-4 sticky top-0 bg-gradient-to-b from-stone-50 to-transparent pb-8">
         <h2 className="text-lg font-semibold">Font Pairs</h2>
         <div className="flex items-center gap-2">
