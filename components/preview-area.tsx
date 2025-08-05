@@ -11,9 +11,9 @@ export function PreviewArea() {
 
   return (
     <div className="flex-1 p-8 overflow-y-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-6">
+      <div className="flex flex-wrap gap-6 justify-center">
         {fontPairs.map((pair) => (
-          <Card key={pair.id} className="p-6">
+          <Card key={pair.id} className="p-6 max-w-lg">
             <div className="space-y-4">
               <div className="text-xs text-stone-500 uppercase tracking-wider">
                 {pair.name}
