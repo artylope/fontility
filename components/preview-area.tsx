@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { useFontPairStore } from '@/lib/store'
+import { loadGoogleFont, getFontWeights } from '@/lib/google-fonts'
 
 // Helper function to get appropriate fallback font based on category
 function getFontFallback(category: string): string {
@@ -30,9 +31,20 @@ export function PreviewArea() {
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const [forceUpdate, setForceUpdate] = useState(0)
 
-  // Debug: Log when fontPairs changes
+  // Load fonts when fontPairs changes
   useEffect(() => {
     console.log('PreviewArea - fontPairs updated:', fontPairs)
+
+    // Load fonts for all pairs
+    fontPairs.forEach(pair => {
+      if (pair.headingFont.family) {
+        loadGoogleFont(pair.headingFont.family, [pair.headingFont.weight])
+      }
+      if (pair.bodyFont.family) {
+        loadGoogleFont(pair.bodyFont.family, [pair.bodyFont.weight])
+      }
+    })
+
     // Force a re-render to ensure fonts are applied
     setForceUpdate(prev => prev + 1)
   }, [fontPairs])
@@ -49,7 +61,7 @@ export function PreviewArea() {
   return (
     <div className="flex-1 p-8 overflow-y-scroll">
       <div className="flex flex-wrap gap-6 justify-center items-center ">
-        <div className="flex flex-wrap gap-6">
+        <div className="flex flex-wrap gap-6 w-full">
           {fontPairs.map((pair) => (
             <Card
               key={pair.id}
