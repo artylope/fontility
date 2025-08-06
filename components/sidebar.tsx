@@ -183,7 +183,7 @@ export function Sidebar() {
 
       {/* Sticky bottom section with Add Pair button */}
       <div className="border-t border-border p-4 bg-background">
-        <Button onClick={() => addFontPair()} size="sm" className="w-full gap-2">
+        <Button onClick={() => addFontPair(undefined, allFonts)} size="sm" className="w-full gap-2">
           <Plus className="w-4 h-4" />
           Add Pair
         </Button>

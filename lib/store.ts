@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { nanoid } from 'nanoid'
 
 export interface FontPair {
   id: string
@@ -23,7 +24,7 @@ export interface FontPair {
 interface FontPairStore {
   fontPairs: FontPair[]
   activePairId: string | null
-  addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>) => void
+  addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: Array<{family: string, category?: string}>) => void
   deleteFontPair: (id: string) => void
   updateFontPair: (id: string, updates: Partial<Omit<FontPair, 'id'>>) => void
   setActivePair: (id: string) => void
@@ -32,7 +33,7 @@ interface FontPairStore {
 const defaultFontPairs = [
   {
     id: '1',
-    name: 'Pair 1',
+    name: 'Inter Inter',
     headingFont: {
       family: 'Inter',
       weight: '700',
@@ -56,9 +57,36 @@ export const useFontPairStore = create<FontPairStore>()(
       fontPairs: defaultFontPairs,
       activePairId: '1',
 
-      addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>) => {
+      addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: Array<{family: string, category?: string}>) => {
         const { fontPairs } = get()
-        const newId = (fontPairs.length + 1).toString()
+        const newId = nanoid()
+        
+        // If no custom pair provided, generate random fonts
+        let finalPair = customPair
+        if (!customPair && availableFonts && availableFonts.length > 0) {
+          // Pick two random fonts
+          const headingFont = availableFonts[Math.floor(Math.random() * availableFonts.length)]
+          const bodyFont = availableFonts[Math.floor(Math.random() * availableFonts.length)]
+          
+          finalPair = {
+            headingFont: {
+              family: headingFont.family,
+              weight: '700',
+              category: headingFont.category || 'sans-serif',
+              lineHeight: 1.25,
+              letterSpacing: -0.025
+            },
+            bodyFont: {
+              family: bodyFont.family,
+              weight: '400', 
+              category: bodyFont.category || 'sans-serif',
+              lineHeight: 1.625,
+              letterSpacing: 0
+            }
+          }
+        }
+        
+        // Fallback to Inter if no custom pair and no fonts available
         const defaultPair = {
           headingFont: {
             family: 'Inter',
@@ -76,11 +104,18 @@ export const useFontPairStore = create<FontPairStore>()(
           }
         }
 
+        // Generate name from font families
+        const headingFamily = finalPair?.headingFont?.family || defaultPair.headingFont.family
+        const bodyFamily = finalPair?.bodyFont?.family || defaultPair.bodyFont.family
+        const headingFirstWord = headingFamily.split(' ')[0]
+        const bodyFirstWord = bodyFamily.split(' ')[0]
+        const generatedName = `${headingFirstWord} ${bodyFirstWord}`
+
         const newPair: FontPair = {
           id: newId,
-          name: `Pair ${fontPairs.length + 1}`,
+          name: generatedName,
           ...defaultPair,
-          ...customPair
+          ...finalPair
         }
         set({ fontPairs: [...fontPairs, newPair], activePairId: newId })
       },
