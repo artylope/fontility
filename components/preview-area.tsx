@@ -92,7 +92,6 @@ export function PreviewArea() {
 
   // Load fonts when fontPairs changes, but only for changed pairs
   useEffect(() => {
-    console.log('PreviewArea - fontPairs updated:', fontPairs)
 
     const prevPairs = prevFontPairsRef.current
     const changedPairs = fontPairs.filter((pair, index) => {
@@ -152,9 +151,9 @@ export function PreviewArea() {
   }, [activePairId])
 
   return (
-    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
-      <div className="p-6 w-full">
+      <div className="p-6 w-full" style={{ pointerEvents: 'auto' }}>
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
           {fontPairs.map((pair) => (
             <Card
@@ -166,7 +165,12 @@ export function PreviewArea() {
                 ? 'outline-black shadow-lg'
                 : 'outline-transparent hover:-translate-y-1 hover:shadow-lg'
                 }`}
-              onClick={() => setActivePair(pair.id)}
+              onClick={(e) => {
+                // Only set active if clicking outside interactive text
+                if (!(e.target as HTMLElement).closest('[data-interactive-text]')) {
+                  setActivePair(pair.id)
+                }
+              }}
             >
               <div className="flex flex-col h-full w-full">
                 {/* Header with name and randomize button */}

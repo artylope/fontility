@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, ReactNode, useEffect } from 'react'
 import { useFontPairStore } from '@/lib/store'
+import { Move, ArrowLeftRight, ArrowUpDown } from 'lucide-react'
 
 interface InteractiveTextProps {
   children: ReactNode
@@ -15,7 +16,9 @@ export function InteractiveText({ children, pairId, textType, className, style }
   const { fontPairs, updateFontPair } = useFontPairStore()
   const [isDragging, setIsDragging] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [dragDirection, setDragDirection] = useState<'horizontal' | 'vertical' | null>(null)
+  const [cursorType, setCursorType] = useState('default')
   const [showOverlay, setShowOverlay] = useState(false)
   const [overlayValues, setOverlayValues] = useState({ lineHeight: 0, letterSpacing: 0 })
 
@@ -23,16 +26,58 @@ export function InteractiveText({ children, pairId, textType, className, style }
   const initialValues = useRef({ lineHeight: 0, letterSpacing: 0 })
   const hasMovedEnough = useRef(false)
   const currentDirection = useRef<'horizontal' | 'vertical' | null>(null)
+  const setCursorTypeRef = useRef(setCursorType)
+
+  // Update the ref when setCursorType changes
+  useEffect(() => {
+    setCursorTypeRef.current = setCursorType
+  }, [setCursorType])
+
+  // Global mouse move tracker for reliable hover detection
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return
+      
+      const rect = containerRef.current.getBoundingClientRect()
+      const isInside = (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      )
+      
+      // Only update state when it actually changes
+      if (isInside && !isHovering && !isDragging) {
+        setIsHovering(true)
+        if (font) {
+          setOverlayValues({
+            lineHeight: font.lineHeight,
+            letterSpacing: font.letterSpacing
+          })
+          setShowOverlay(true)
+        }
+      } else if (!isInside && isHovering && !isDragging) {
+        setIsHovering(false)
+        setShowOverlay(false)
+      }
+    }
+
+    document.addEventListener('mousemove', handleGlobalMouseMove)
+    return () => document.removeEventListener('mousemove', handleGlobalMouseMove)
+  }, [isHovering, isDragging, textType, pairId])
+
 
   // Get current pair data
   const pair = fontPairs.find(p => p.id === pairId)
   const font = pair ? (textType === 'heading' ? pair.headingFont : pair.bodyFont) : null
 
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    console.log('Mouse down on', textType, 'for pair', pairId)
     e.preventDefault()
 
-    if (!font) return
+    if (!font) {
+      return
+    }
 
     startPos.current = { x: e.clientX, y: e.clientY }
     initialValues.current = {
@@ -49,7 +94,7 @@ export function InteractiveText({ children, pairId, textType, className, style }
     setShowOverlay(true)
     hasMovedEnough.current = false
     currentDirection.current = null
-    setDragDirection(null)
+    setCursorType('grabbing')
 
     // Add event listeners to document
 
@@ -61,8 +106,8 @@ export function InteractiveText({ children, pairId, textType, className, style }
       if (!hasMovedEnough.current && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
         hasMovedEnough.current = true
         currentDirection.current = Math.abs(deltaX) > Math.abs(deltaY) ? 'horizontal' : 'vertical'
-        setDragDirection(currentDirection.current)
-        console.log('Direction set to:', currentDirection.current)
+        const cursorValue = currentDirection.current === 'horizontal' ? 'ew-resize' : 'ns-resize'
+        setCursorTypeRef.current(cursorValue)
       }
 
       if (!hasMovedEnough.current) return
@@ -96,7 +141,6 @@ export function InteractiveText({ children, pairId, textType, className, style }
       })
 
       // Update the store
-      console.log('Updating values:', { lineHeight: newLineHeight, letterSpacing: newLetterSpacing })
       updateFontPair(pairId, {
         [textType === 'heading' ? 'headingFont' : 'bodyFont']: {
           ...font,
@@ -107,11 +151,11 @@ export function InteractiveText({ children, pairId, textType, className, style }
     }
 
     const handleMouseUp = () => {
-      console.log('Mouse up')
       setIsDragging(false)
-      setDragDirection(null)
       setShowOverlay(false)
       hasMovedEnough.current = false
+      currentDirection.current = null
+      setCursorType('default')
 
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
@@ -121,49 +165,64 @@ export function InteractiveText({ children, pairId, textType, className, style }
     document.addEventListener('mouseup', handleMouseUp)
   }, [font, pairId, textType, updateFontPair])
 
-  const getCursor = () => {
-    if (isDragging && dragDirection) {
-      return dragDirection === 'horizontal' ? 'ew-resize' : 'ns-resize'
-    }
+  const getIconComponent = () => {
     if (isDragging) {
-      return 'grabbing'
+      // Use cursorType instead of currentDirection.current for more reliable state
+      if (cursorType === 'ew-resize') return <ArrowLeftRight className="w-4 h-4" />
+      if (cursorType === 'ns-resize') return <ArrowUpDown className="w-4 h-4" />
+      return <Move className="w-4 h-4" />
     }
     if (isHovering) {
-      return 'grab'
+      return <Move className="w-4 h-4" />
     }
-    return 'default'
+    return null
   }
 
   return (
-    <div className="relative">
+    <div
+      ref={containerRef}
+      className="relative"
+      onMouseDown={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        handleMouseDown(e)
+      }}
+    >
       <div
         className={className}
+        data-interactive-text="true"
+        data-pair-id={pairId}
+        data-text-type={textType}
         style={{
           ...style,
-          cursor: getCursor(),
-          userSelect: isDragging ? 'none' : 'auto'
+          cursor: 'default',
+          userSelect: isDragging ? 'none' : 'auto',
+          pointerEvents: 'auto'
         }}
-        onMouseDown={handleMouseDown}
-        onMouseEnter={() => {
-          setIsHovering(true)
-          if (font) {
-            setOverlayValues({
-              lineHeight: font.lineHeight,
-              letterSpacing: font.letterSpacing
-            })
-            setShowOverlay(true)
-          }
+        onMouseDown={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          handleMouseDown(e)
         }}
-        onMouseLeave={() => {
-          setIsHovering(false)
-          if (!isDragging) {
-            setShowOverlay(false)
-          }
+        onClick={(e) => {
+          // Handle click if needed
+        }}
+        onMouseUp={(e) => {
+          // Handle mouse up if needed
         }}
       >
         {children}
       </div>
 
+      {/* Custom cursor icon - only show for this specific element */}
+      {(isHovering || isDragging) && (
+        <div className="absolute top-2 left-2 bg-black text-white p-1.5 rounded pointer-events-none z-20 flex items-center justify-center">
+          {getIconComponent()}
+          <span className="text-xs ml-1 font-mono">{pairId.slice(-1)}-{textType[0].toUpperCase()}{isHovering ? 'H' : ''}{isDragging ? 'D' : ''}{cursorType !== 'default' ? `-${cursorType}` : ''}</span>
+        </div>
+      )}
+
+      {/* Values overlay */}
       {showOverlay && font && (
         <div className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none z-10 font-mono">
           <div>line-height: {overlayValues.lineHeight.toFixed(3)}</div>
