@@ -4,7 +4,7 @@ import { Header } from '@/components/header'
 
 export default function Home() {
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Fixed header */}
       <Header />
       {/* Main content area with independent scrolling */}

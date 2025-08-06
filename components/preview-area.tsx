@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Dices } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Dices, Plus } from 'lucide-react'
 import { useFontPairStore } from '@/lib/store'
 import { loadGoogleFont, getFontWeights, fetchGoogleFonts, GoogleFont } from '@/lib/google-fonts'
 import { InteractiveText } from './interactive-text'
@@ -31,12 +32,14 @@ const PREVIEW_HEADING = "Great typography guides the reader's eye"
 const PREVIEW_BODY = "Customize responsive typography systems for your fonts with meticulously designed editors for line height and letter spacing across font sizes and breakpoints."
 
 export function PreviewArea() {
-  const { fontPairs, activePairId, setActivePair, updateFontPair } = useFontPairStore()
+  const { fontPairs, activePairId, setActivePair, updateFontPair, addFontPair } = useFontPairStore()
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const [forceUpdate, setForceUpdate] = useState(0)
   const [loadingFonts, setLoadingFonts] = useState<Set<string>>(new Set())
   const prevFontPairsRef = useRef<typeof fontPairs>([])
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
+  const [editingPairId, setEditingPairId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState('')
 
   useEffect(() => {
     fetchGoogleFonts().then(setAllFonts)
@@ -150,8 +153,34 @@ export function PreviewArea() {
     }
   }, [activePairId])
 
+  const handleNameEdit = (pairId: string, currentName: string) => {
+    setEditingPairId(pairId)
+    setEditingName(currentName)
+  }
+
+  const handleNameSave = (pairId: string) => {
+    if (editingName.trim()) {
+      updateFontPair(pairId, { name: editingName.trim() })
+    }
+    setEditingPairId(null)
+    setEditingName('')
+  }
+
+  const handleNameCancel = () => {
+    setEditingPairId(null)
+    setEditingName('')
+  }
+
+  const handleNameKeyDown = (e: React.KeyboardEvent, pairId: string) => {
+    if (e.key === 'Enter') {
+      handleNameSave(pairId)
+    } else if (e.key === 'Escape') {
+      handleNameCancel()
+    }
+  }
+
   return (
-    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300" style={{ pointerEvents: 'none' }}>
+    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
       <div className="p-6 w-full" style={{ pointerEvents: 'auto' }}>
 
@@ -162,8 +191,8 @@ export function PreviewArea() {
               ref={(el) => {
                 cardRefs.current[pair.id] = el
               }}
-              className={`bg-white p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
-                ? 'outline-black shadow-lg'
+              className={`bg-card p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
+                ? 'outline-foreground shadow-lg'
                 : 'outline-transparent hover:-translate-y-1 hover:shadow-lg'
                 }`}
               onClick={(e) => {
@@ -176,9 +205,27 @@ export function PreviewArea() {
               <div className="flex flex-col h-full w-full">
                 {/* Header with name and randomize button */}
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs text-stone-500 uppercase tracking-wider font-semibold">
-                    {pair.name}
-                  </div>
+                  {editingPairId === pair.id ? (
+                    <Input
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onKeyDown={(e) => handleNameKeyDown(e, pair.id)}
+                      onBlur={() => handleNameSave(pair.id)}
+                      className="!text-xs text-muted-foreground uppercase tracking-wider font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0 bg-transparent"
+                      autoFocus
+                    />
+                  ) : (
+                    <div
+                      className="text-xs text-muted-foreground uppercase tracking-wider font-semibold cursor-pointer hover:text-foreground transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleNameEdit(pair.id, pair.name)
+                      }}
+                      title="Click to rename"
+                    >
+                      {pair.name}
+                    </div>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -207,7 +254,7 @@ export function PreviewArea() {
                       pairId={pair.id}
                       textType="heading"
                       key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
-                      className="text-[2.6em] text-stone-900 text-balance"
+                      className="text-[2.6em] text-foreground text-balance"
                       style={{
                         fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
                         fontWeight: pair.headingFont.weight,
@@ -231,7 +278,7 @@ export function PreviewArea() {
                       pairId={pair.id}
                       textType="body"
                       key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
-                      className="text-stone-600 mt-4 pb-4"
+                      className="text-muted-foreground mt-4 pb-4"
                       style={{
                         fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
                         fontWeight: pair.bodyFont.weight,
@@ -245,7 +292,7 @@ export function PreviewArea() {
                 </div>
 
                 {/* Metadata that sits at the bottom */}
-                <div className="pt-4 border-t border-stone-100 text-xs text-stone-500 space-y-1 mt-auto">
+                <div className="pt-4 border-t border-border text-xs text-muted-foreground space-y-1 mt-auto">
                   <div>
                     <span className="font-medium">Heading:</span> {pair.headingFont.family} {pair.headingFont.weight}
                   </div>
@@ -256,6 +303,23 @@ export function PreviewArea() {
               </div>
             </Card>
           ))}
+
+          {/* Add New Pair Card */}
+          <Card
+            className="bg-card p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col outline-transparent hover:-translate-y-1 hover:shadow-lg border-dashed border-2 border-border hover:border-foreground/50"
+            onClick={() => addFontPair()}
+          >
+            <div className="flex flex-col h-full w-full items-center justify-center">
+              <div className="flex flex-col items-center justify-center flex-1 space-y-4">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
+                  <Plus className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <div className="text-sm text-muted-foreground font-medium text-center">
+                  Add New Pair
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
     </div>
