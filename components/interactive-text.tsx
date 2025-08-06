@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, ReactNode, useEffect } from 'react'
 import { useFontPairStore } from '@/lib/store'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Move, ArrowLeftRight, ArrowUpDown } from 'lucide-react'
 
 interface InteractiveTextProps {
@@ -37,7 +38,7 @@ export function InteractiveText({ children, pairId, textType, className, style }
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return
-      
+
       const rect = containerRef.current.getBoundingClientRect()
       const isInside = (
         e.clientX >= rect.left &&
@@ -45,7 +46,7 @@ export function InteractiveText({ children, pairId, textType, className, style }
         e.clientY >= rect.top &&
         e.clientY <= rect.bottom
       )
-      
+
       // Only update state when it actually changes
       if (isInside && !isHovering && !isDragging) {
         setIsHovering(true)
@@ -125,8 +126,8 @@ export function InteractiveText({ children, pairId, textType, className, style }
         // Clamp letter spacing between -2px and 5px
         newLetterSpacing = Math.max(-4, Math.min(5, newLetterSpacing))
       } else if (currentDirection.current === 'vertical') {
-        // Vertical: adjust line height (inverted - up increases, down decreases)
-        newLineHeight = initialValues.current.lineHeight + (-deltaY * lineHeightSensitivity)
+        // Vertical: adjust line height (up tightens/decreases, down loosens/increases)
+        newLineHeight = initialValues.current.lineHeight + (deltaY * lineHeightSensitivity)
         // Clamp line height between 0.8 and 3.0
         newLineHeight = Math.max(0.8, Math.min(3.0, newLineHeight))
       }
@@ -188,47 +189,40 @@ export function InteractiveText({ children, pairId, textType, className, style }
         handleMouseDown(e)
       }}
     >
-      <div
-        className={className}
-        data-interactive-text="true"
-        data-pair-id={pairId}
-        data-text-type={textType}
-        style={{
-          ...style,
-          cursor: 'default',
-          userSelect: isDragging ? 'none' : 'auto',
-          pointerEvents: 'auto'
-        }}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          handleMouseDown(e)
-        }}
-        onClick={(e) => {
-          // Handle click if needed
-        }}
-        onMouseUp={(e) => {
-          // Handle mouse up if needed
-        }}
-      >
-        {children}
-      </div>
-
-      {/* Custom cursor icon - only show for this specific element */}
-      {(isHovering || isDragging) && (
-        <div className="absolute top-2 left-2 bg-black text-white p-1.5 rounded pointer-events-none z-20 flex items-center justify-center">
-          {getIconComponent()}
-          <span className="text-xs ml-1 font-mono">{pairId.slice(-1)}-{textType[0].toUpperCase()}{isHovering ? 'H' : ''}{isDragging ? 'D' : ''}{cursorType !== 'default' ? `-${cursorType}` : ''}</span>
-        </div>
-      )}
-
-      {/* Values overlay */}
-      {showOverlay && font && (
-        <div className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none z-10 font-mono">
-          <div>line-height: {overlayValues.lineHeight.toFixed(3)}</div>
-          <div>letter-spacing: {overlayValues.letterSpacing.toFixed(3)}px</div>
-        </div>
-      )}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className={className}
+              data-interactive-text="true"
+              data-pair-id={pairId}
+              data-text-type={textType}
+              style={{
+                ...style,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                userSelect: isDragging ? 'none' : 'auto',
+                pointerEvents: 'auto'
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                handleMouseDown(e)
+              }}
+              onClick={(e) => {
+                // Handle click if needed
+              }}
+              onMouseUp={(e) => {
+                // Handle mouse up if needed
+              }}
+            >
+              {children}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Drag to adjust line height and letter spacing</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   )
 }
