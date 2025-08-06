@@ -120,8 +120,9 @@ export function Sidebar() {
                   e.stopPropagation()
                   handleNameChange(pair.id, e.target.value)
                 }}
-                className="font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0"
+                className="text-xs text-stone-500 uppercase tracking-wider font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0"
               />
+
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"

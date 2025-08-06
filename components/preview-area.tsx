@@ -176,7 +176,7 @@ export function PreviewArea() {
               <div className="flex flex-col h-full w-full">
                 {/* Header with name and randomize button */}
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs text-stone-500 uppercase tracking-wider">
+                  <div className="text-xs text-stone-500 uppercase tracking-wider font-semibold">
                     {pair.name}
                   </div>
                   <Button
