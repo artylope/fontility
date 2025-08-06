@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Dices } from 'lucide-react'
+import { Dices, Plus } from 'lucide-react'
 import { useFontPairStore } from '@/lib/store'
 import { loadGoogleFont, getFontWeights, fetchGoogleFonts, GoogleFont } from '@/lib/google-fonts'
 import { InteractiveText } from './interactive-text'
@@ -31,7 +31,7 @@ const PREVIEW_HEADING = "Great typography guides the reader's eye"
 const PREVIEW_BODY = "Customize responsive typography systems for your fonts with meticulously designed editors for line height and letter spacing across font sizes and breakpoints."
 
 export function PreviewArea() {
-  const { fontPairs, activePairId, setActivePair, updateFontPair } = useFontPairStore()
+  const { fontPairs, activePairId, setActivePair, updateFontPair, addFontPair } = useFontPairStore()
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const [forceUpdate, setForceUpdate] = useState(0)
   const [loadingFonts, setLoadingFonts] = useState<Set<string>>(new Set())
@@ -256,6 +256,23 @@ export function PreviewArea() {
               </div>
             </Card>
           ))}
+
+          {/* Add New Pair Card */}
+          <Card
+            className="bg-card p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col outline-transparent hover:-translate-y-1 hover:shadow-lg border-dashed border-2 border-border hover:border-foreground/50"
+            onClick={() => addFontPair()}
+          >
+            <div className="flex flex-col h-full w-full items-center justify-center">
+              <div className="flex flex-col items-center justify-center flex-1 space-y-4">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
+                  <Plus className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <div className="text-sm text-muted-foreground font-medium text-center">
+                  Add New Pair
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
     </div>
