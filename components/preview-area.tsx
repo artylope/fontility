@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Dices } from 'lucide-react'
 import { useFontPairStore } from '@/lib/store'
 import { loadGoogleFont, getFontWeights, fetchGoogleFonts, GoogleFont } from '@/lib/google-fonts'
+import { InteractiveText } from './interactive-text'
 
 // Helper function to get appropriate fallback font based on category
 function getFontFallback(category: string): string {
@@ -74,12 +75,16 @@ export function PreviewArea() {
       headingFont: {
         family: headingFont.family,
         weight: randomHeadingWeight,
-        category: headingFont.category
+        category: headingFont.category,
+        lineHeight: 1.25,
+        letterSpacing: -0.025
       },
       bodyFont: {
         family: bodyFont.family,
         weight: randomBodyWeight,
-        category: bodyFont.category
+        category: bodyFont.category,
+        lineHeight: 1.625,
+        letterSpacing: 0
       }
     })
   }
@@ -87,7 +92,6 @@ export function PreviewArea() {
 
   // Load fonts when fontPairs changes, but only for changed pairs
   useEffect(() => {
-    console.log('PreviewArea - fontPairs updated:', fontPairs)
 
     const prevPairs = prevFontPairsRef.current
     const changedPairs = fontPairs.filter((pair, index) => {
@@ -147,25 +151,31 @@ export function PreviewArea() {
   }, [activePairId])
 
   return (
-    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
-      <div className="p-6 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
+      <div className="p-6 w-full" style={{ pointerEvents: 'auto' }}>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
           {fontPairs.map((pair) => (
             <Card
               key={pair.id}
               ref={(el) => {
                 cardRefs.current[pair.id] = el
               }}
-              className={`bg-white p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col min-w-0 w-fulllg:min-w-lg ${activePairId === pair.id
+              className={`bg-white p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
                 ? 'outline-black shadow-lg'
                 : 'outline-transparent hover:-translate-y-1 hover:shadow-lg'
                 }`}
-              onClick={() => setActivePair(pair.id)}
+              onClick={(e) => {
+                // Only set active if clicking outside interactive text
+                if (!(e.target as HTMLElement).closest('[data-interactive-text]')) {
+                  setActivePair(pair.id)
+                }
+              }}
             >
               <div className="flex flex-col h-full w-full">
                 {/* Header with name and randomize button */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-2">
                   <div className="text-xs text-stone-500 uppercase tracking-wider">
                     {pair.name}
                   </div>
@@ -193,16 +203,20 @@ export function PreviewArea() {
                       <Skeleton className="h-[3em] w-4/5" />
                     </div>
                   ) : (
-                    <div
+                    <InteractiveText
+                      pairId={pair.id}
+                      textType="heading"
                       key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
-                      className="text-[2.6em] leading-tight text-stone-900 tracking-tight text-balance"
+                      className="text-[2.6em] text-stone-900 text-balance"
                       style={{
                         fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
-                        fontWeight: pair.headingFont.weight
+                        fontWeight: pair.headingFont.weight,
+                        lineHeight: pair.headingFont.lineHeight,
+                        letterSpacing: `${pair.headingFont.letterSpacing}px`
                       }}
                     >
                       {PREVIEW_HEADING}
-                    </div>
+                    </InteractiveText>
                   )}
 
                   {loadingFonts.has(`${pair.bodyFont.family}-${pair.bodyFont.weight}`) ? (
@@ -213,16 +227,20 @@ export function PreviewArea() {
                       <Skeleton className="h-[1.5em] w-3/4" />
                     </div>
                   ) : (
-                    <div
+                    <InteractiveText
+                      pairId={pair.id}
+                      textType="body"
                       key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
-                      className="leading-relaxed text-stone-600 mt-4"
+                      className="text-stone-600 mt-4 pb-4"
                       style={{
                         fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
-                        fontWeight: pair.bodyFont.weight
+                        fontWeight: pair.bodyFont.weight,
+                        lineHeight: pair.bodyFont.lineHeight,
+                        letterSpacing: `${pair.bodyFont.letterSpacing}px`
                       }}
                     >
                       {PREVIEW_BODY}
-                    </div>
+                    </InteractiveText>
                   )}
                 </div>
 

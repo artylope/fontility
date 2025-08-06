@@ -33,13 +33,13 @@ export function Sidebar() {
 
   const handleHeadingFontChange = (id: string, family: string, weight: string, category?: string) => {
     updateFontPair(id, {
-      headingFont: { family, weight, category }
+      headingFont: { family, weight, category, lineHeight: 1.25, letterSpacing: -0.025 }
     })
   }
 
   const handleBodyFontChange = (id: string, family: string, weight: string, category?: string) => {
     updateFontPair(id, {
-      bodyFont: { family, weight, category }
+      bodyFont: { family, weight, category, lineHeight: 1.625, letterSpacing: 0 }
     })
   }
 
@@ -76,12 +76,16 @@ export function Sidebar() {
       headingFont: {
         family: headingFont.family,
         weight: randomHeadingWeight,
-        category: headingFont.category
+        category: headingFont.category,
+        lineHeight: 1.25,
+        letterSpacing: -0.025
       },
       bodyFont: {
         family: bodyFont.family,
         weight: randomBodyWeight,
-        category: bodyFont.category
+        category: bodyFont.category,
+        lineHeight: 1.625,
+        letterSpacing: 0
       }
     })
   }

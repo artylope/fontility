@@ -19,7 +19,6 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
   }
 
   try {
-    console.log('Fetching Google Fonts...')
     const response = await fetch(
       `${GOOGLE_FONTS_API_URL}?key=${apiKey}&sort=popularity`
     )
@@ -30,7 +29,6 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
     }
 
     const data: GoogleFontsResponse = await response.json()
-    console.log(`Loaded ${data.items.length} fonts from Google Fonts API`)
     return data.items
   } catch (error) {
     console.error('Error fetching Google Fonts:', error)
@@ -45,7 +43,6 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
   const existingLink = document.getElementById(fontId)
   if (existingLink) {
     existingLink.remove()
-    console.log('Removed existing font link:', fontFamily)
   }
 
   // Limit weights to avoid URL being too long - Google Fonts has limits
@@ -56,7 +53,6 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
   const encodedFontFamily = fontFamily.replace(/\s+/g, '+')
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodedFontFamily}:wght@${weightQuery}&display=swap`
 
-  console.log('Loading font:', fontFamily, 'with weights:', limitedWeights, 'URL:', fontUrl)
 
   // Try fetching first to check if font exists
   fetch(fontUrl, { method: 'HEAD' })
@@ -79,12 +75,10 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
       }
       
       link.onload = () => {
-        console.log('Successfully loaded font CSS:', fontFamily)
         
         // Try to load the actual font
         if ('fonts' in document) {
           document.fonts.load(`${limitedWeights[0]} 16px "${fontFamily}"`).then(() => {
-            console.log('Font face loaded successfully:', fontFamily)
           }).catch((error) => {
             console.error('Font face loading failed:', fontFamily, error)
           })
@@ -92,7 +86,6 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
       }
 
       document.head.appendChild(link)
-      console.log('Font link added to document head:', fontId)
     })
     .catch(error => {
       console.error('Error checking font availability:', fontFamily, error)

@@ -7,11 +7,15 @@ export interface FontPair {
     family: string
     weight: string
     category?: string
+    lineHeight: number
+    letterSpacing: number
   }
   bodyFont: {
     family: string
     weight: string
     category?: string
+    lineHeight: number
+    letterSpacing: number
   }
 }
 
@@ -31,12 +35,16 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
     headingFont: {
       family: 'Inter',
       weight: '700',
-      category: 'sans-serif'
+      category: 'sans-serif',
+      lineHeight: 1.25,
+      letterSpacing: -0.025
     },
     bodyFont: {
       family: 'Inter',
       weight: '400',
-      category: 'sans-serif'
+      category: 'sans-serif',
+      lineHeight: 1.625,
+      letterSpacing: 0
     }
   }],
   activePairId: '1',
@@ -48,12 +56,16 @@ export const useFontPairStore = create<FontPairStore>((set, get) => ({
       headingFont: {
         family: 'Inter',
         weight: '700',
-        category: 'sans-serif'
+        category: 'sans-serif',
+        lineHeight: 1.25,
+        letterSpacing: -0.025
       },
       bodyFont: {
         family: 'Inter',
         weight: '400',
-        category: 'sans-serif'
+        category: 'sans-serif',
+        lineHeight: 1.625,
+        letterSpacing: 0
       }
     }
     

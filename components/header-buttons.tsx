@@ -47,12 +47,16 @@ export function HeaderButtons() {
       headingFont: {
         family: headingFont.family,
         weight: randomHeadingWeight,
-        category: headingFont.category
+        category: headingFont.category,
+        lineHeight: 1.25,
+        letterSpacing: -0.025
       },
       bodyFont: {
         family: bodyFont.family,
         weight: randomBodyWeight,
-        category: bodyFont.category
+        category: bodyFont.category,
+        lineHeight: 1.625,
+        letterSpacing: 0
       }
     })
   }
@@ -102,12 +106,16 @@ export function HeaderButtons() {
       headingFont: {
         family: headingFont.family,
         weight: randomHeadingWeight,
-        category: headingFont.category
+        category: headingFont.category,
+        lineHeight: 1.25,
+        letterSpacing: -0.025
       },
       bodyFont: {
         family: bodyFont.family,
         weight: randomBodyWeight,
-        category: bodyFont.category
+        category: bodyFont.category,
+        lineHeight: 1.625,
+        letterSpacing: 0
       }
     })
   }
