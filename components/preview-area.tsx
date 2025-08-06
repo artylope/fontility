@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Dices, Plus } from 'lucide-react'
 import { useFontPairStore } from '@/lib/store'
 import { loadGoogleFont, getFontWeights, fetchGoogleFonts, GoogleFont } from '@/lib/google-fonts'
@@ -37,6 +38,8 @@ export function PreviewArea() {
   const [loadingFonts, setLoadingFonts] = useState<Set<string>>(new Set())
   const prevFontPairsRef = useRef<typeof fontPairs>([])
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
+  const [editingPairId, setEditingPairId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState('')
 
   useEffect(() => {
     fetchGoogleFonts().then(setAllFonts)
@@ -150,6 +153,32 @@ export function PreviewArea() {
     }
   }, [activePairId])
 
+  const handleNameEdit = (pairId: string, currentName: string) => {
+    setEditingPairId(pairId)
+    setEditingName(currentName)
+  }
+
+  const handleNameSave = (pairId: string) => {
+    if (editingName.trim()) {
+      updateFontPair(pairId, { name: editingName.trim() })
+    }
+    setEditingPairId(null)
+    setEditingName('')
+  }
+
+  const handleNameCancel = () => {
+    setEditingPairId(null)
+    setEditingName('')
+  }
+
+  const handleNameKeyDown = (e: React.KeyboardEvent, pairId: string) => {
+    if (e.key === 'Enter') {
+      handleNameSave(pairId)
+    } else if (e.key === 'Escape') {
+      handleNameCancel()
+    }
+  }
+
   return (
     <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
@@ -176,9 +205,27 @@ export function PreviewArea() {
               <div className="flex flex-col h-full w-full">
                 {/* Header with name and randomize button */}
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                    {pair.name}
-                  </div>
+                  {editingPairId === pair.id ? (
+                    <Input
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onKeyDown={(e) => handleNameKeyDown(e, pair.id)}
+                      onBlur={() => handleNameSave(pair.id)}
+                      className="!text-xs text-muted-foreground uppercase tracking-wider font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0 bg-transparent"
+                      autoFocus
+                    />
+                  ) : (
+                    <div
+                      className="text-xs text-muted-foreground uppercase tracking-wider font-semibold cursor-pointer hover:text-foreground transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleNameEdit(pair.id, pair.name)
+                      }}
+                      title="Click to rename"
+                    >
+                      {pair.name}
+                    </div>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

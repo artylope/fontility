@@ -99,83 +99,94 @@ export function Sidebar() {
   }
 
   return (
-    <div className="w-96 border-r border-border flex flex-col h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent">
-      <div className="flex-1 space-y-4 py-4 px-4">
-        {fontPairs.map((pair) => (
-          <Card
-            key={pair.id}
-            ref={(el) => {
-              cardRefs.current[pair.id] = el
-            }}
-            className={`space-y-1 p-3 pb-4 border-none shadow-none cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
-              ? 'bg-card outline-foreground shadow-lg'
-              : 'outline-transparent hover:outline-border'
-              }`}
-            onClick={() => setActivePair(pair.id)}
-          >
-            <div className="flex items-center justify-between">
-              <Input
-                value={pair.name}
-                onChange={(e) => {
-                  e.stopPropagation()
-                  handleNameChange(pair.id, e.target.value)
-                }}
-                className="text-xs text-muted-foreground uppercase tracking-wider font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0"
-              />
-
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
+    <div className="w-88 border-r border-border flex flex-col h-full">
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
+        <div className="space-y-4 py-4 px-4">
+          {fontPairs.map((pair) => (
+            <Card
+              key={pair.id}
+              ref={(el) => {
+                cardRefs.current[pair.id] = el
+              }}
+              className={`space-y-1 p-3 pb-4 border-none shadow-none cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
+                ? 'bg-card outline-foreground shadow-lg'
+                : 'outline-transparent hover:outline-border'
+                }`}
+              onClick={() => setActivePair(pair.id)}
+            >
+              <div className="flex items-center justify-between">
+                <Input
+                  value={pair.name}
+                  onChange={(e) => {
                     e.stopPropagation()
-                    randomizeFontPair(pair.id)
+                    handleNameChange(pair.id, e.target.value)
                   }}
-                  className="h-6 w-6 p-0 hover:bg-blue-100 hover:text-blue-600"
-                  title="Randomize font pairing"
-                  disabled={allFonts.length === 0}
-                >
-                  <Dices className="w-3 h-3" />
-                </Button>
-                {fontPairs.length > 1 && (
+                  className="!text-xs text-muted-foreground uppercase tracking-wider font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0"
+                />
+
+                <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation()
-                      deleteFontPair(pair.id)
+                      randomizeFontPair(pair.id)
                     }}
-                    className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                    className="h-6 w-6 p-0 hover:bg-blue-100 hover:text-blue-600"
+                    title="Randomize font pairing"
+                    disabled={allFonts.length === 0}
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Dices className="w-3 h-3" />
                   </Button>
-                )}
+                  {fontPairs.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteFontPair(pair.id)
+                      }}
+                      className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <div className="text-xs font-medium text-foreground mb-2">Heading</div>
-                <FontSelector
-                  label=""
-                  fontFamily={pair.headingFont.family}
-                  fontWeight={pair.headingFont.weight}
-                  onFontChange={(family, weight, category) => handleHeadingFontChange(pair.id, family, weight, category)}
-                />
-              </div>
+              <div className="space-y-4">
+                <div>
+                  <div className="text-xs font-medium text-foreground mb-2">Heading</div>
+                  <FontSelector
+                    label=""
+                    fontFamily={pair.headingFont.family}
+                    fontWeight={pair.headingFont.weight}
+                    onFontChange={(family, weight, category) => handleHeadingFontChange(pair.id, family, weight, category)}
+                  />
+                </div>
 
-              <div>
-                <div className="text-xs font-medium text-foreground mb-2">Body</div>
-                <FontSelector
-                  label=""
-                  fontFamily={pair.bodyFont.family}
-                  fontWeight={pair.bodyFont.weight}
-                  onFontChange={(family, weight, category) => handleBodyFontChange(pair.id, family, weight, category)}
-                />
+                <div>
+                  <div className="text-xs font-medium text-foreground mb-2">Body</div>
+                  <FontSelector
+                    label=""
+                    fontFamily={pair.bodyFont.family}
+                    fontWeight={pair.bodyFont.weight}
+                    onFontChange={(family, weight, category) => handleBodyFontChange(pair.id, family, weight, category)}
+                  />
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Sticky bottom section with Add Pair button */}
+      <div className="border-t border-border p-4 bg-background">
+        <Button onClick={() => addFontPair()} size="sm" className="w-full gap-2">
+          <Plus className="w-4 h-4" />
+          Add Pair
+        </Button>
       </div>
     </div>
   )

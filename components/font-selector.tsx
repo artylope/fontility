@@ -39,26 +39,26 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
 
     fetchGoogleFonts().then((googleFonts) => {
       setFonts(googleFonts)
-      
+
       // Get top 20 popular fonts (already sorted by popularity from API)
       const top20 = googleFonts.slice(0, 20)
       setPopularFonts(top20)
-      
+
       // Sort ALL fonts alphabetically for the second section
       const allFontsAlphabetical = [...googleFonts].sort((a, b) => a.family.localeCompare(b.family))
       // Remove the top 20 popular fonts from the alphabetical list to avoid duplicates
       const top20Names = new Set(top20.map(f => f.family))
       const alphabeticalOnly = allFontsAlphabetical.filter(font => !top20Names.has(font.family))
       setAlphabeticalFonts(alphabeticalOnly)
-      
+
       setLoading(false)
-      
+
       // Load all fonts immediately for preview
       const allFontsToLoad = [...top20, ...alphabeticalOnly.slice(0, 50)] // Load first 50 alphabetical fonts
       allFontsToLoad.forEach(font => {
         loadGoogleFont(font.family, ['400'])
       })
-      
+
       // Set a reasonable timeout for fonts to load
       setTimeout(() => {
         setFontsLoaded(true)
@@ -93,27 +93,27 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
   }, [fontFamily, fontWeight])
 
   const handleFontSelect = (font: GoogleFont) => {
-    
+
     // Check if this font was in our pre-loaded batch
     const allFontsToLoad = [...popularFonts, ...alphabeticalFonts.slice(0, 50)]
     const wasPreloaded = allFontsToLoad.some(f => f.family === font.family)
-    
+
     setSelectedFont(font)
     setOpen(false)
-    
+
     // Load all available weights for the selected font
     const availableWeights = getFontWeights(font)
-    
+
     // Always load the font when selected, especially if it wasn't preloaded
     loadGoogleFont(font.family, availableWeights)
-    
+
     if (!wasPreloaded) {
       // Force reload with a slight delay to ensure it loads properly
       setTimeout(() => {
         loadGoogleFont(font.family, availableWeights)
       }, 100)
     }
-    
+
     // Check if current weight is available, otherwise use first available weight
     const newWeight = availableWeights.includes(fontWeight) ? fontWeight : availableWeights[0]
     onFontChange(font.family, newWeight, font.category)
@@ -149,13 +149,13 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
               disabled={loading}
               className="w-full justify-between h-auto"
             >
-              <span className="text-sm text-foreground">
+              <span className="text-sm text-foreground !font-normal">
                 {loading ? 'Loading fonts...' : selectedFont?.family || 'Select font...'}
               </span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0">
+          <PopoverContent className="w-[18.5rem] p-0">
             <Command>
               <CommandInput placeholder="Search fonts..." />
               <CommandList>
@@ -176,7 +176,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                         onSelect={() => handleFontSelect(font)}
                         className="flex items-center justify-between p-3"
                       >
-                        <span 
+                        <span
                           className="font-medium"
                           style={{ fontFamily: `"${font.family}", sans-serif` }}
                         >
@@ -201,7 +201,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                         onSelect={() => handleFontSelect(font)}
                         className="flex items-center justify-between p-3"
                       >
-                        <span 
+                        <span
                           className="font-medium"
                           style={{ fontFamily: `"${font.family}", sans-serif` }}
                           onMouseEnter={() => {
