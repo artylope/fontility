@@ -10,6 +10,43 @@ export interface GoogleFontsResponse {
 
 const GOOGLE_FONTS_API_URL = 'https://www.googleapis.com/webfonts/v1/webfonts'
 
+// Blacklist of fonts to exclude from random selection
+const FONT_BLACKLIST = [
+  // Icon fonts
+  'Material Icons',
+  'Material Icons Outlined', 
+  'Material Icons Round',
+  'Material Icons Sharp',
+  'Material Icons Two Tone',
+  'Material Symbols Outlined',
+  'Material Symbols Rounded',
+  'Material Symbols Sharp',
+  // Other icon/symbol fonts
+  'Noto Color Emoji',
+  'Noto Emoji',
+  // Fonts that are problematic for body text
+  'Creepster',
+  'Butcherman', 
+  'Griffy',
+  'Jolly Lodger',
+]
+
+function isGoodForRandomSelection(font: GoogleFont): boolean {
+  const family = font.family.toLowerCase()
+  
+  // Check blacklist
+  if (FONT_BLACKLIST.some(blacklisted => family.includes(blacklisted.toLowerCase()))) {
+    return false
+  }
+  
+  // Filter out fonts with "icon", "emoji", "symbol" in name
+  if (family.includes('icon') || family.includes('emoji') || family.includes('symbol')) {
+    return false
+  }
+  
+  return true
+}
+
 export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_FONTS_API_KEY
 
@@ -29,10 +66,37 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
     }
 
     const data: GoogleFontsResponse = await response.json()
+    console.log(`Loaded ${data.items.length} Google Fonts`)
     return data.items
   } catch (error) {
     console.error('Error fetching Google Fonts:', error)
     return []
+  }
+}
+
+export function getRandomFontsForPair(allFonts: GoogleFont[]): { headingFont: GoogleFont, bodyFont: GoogleFont } | null {
+  // Filter fonts suitable for random selection
+  const goodFonts = allFonts.filter(isGoodForRandomSelection)
+  
+  if (goodFonts.length < 2) {
+    console.warn(`Not enough suitable fonts for randomization. Found ${goodFonts.length} fonts`)
+    return null
+  }
+  
+  console.log(`Selecting from ${goodFonts.length} suitable fonts out of ${allFonts.length} total fonts`)
+  
+  // Pick two different random fonts
+  const headingIndex = Math.floor(Math.random() * goodFonts.length)
+  let bodyIndex = Math.floor(Math.random() * goodFonts.length)
+  
+  // Ensure body font is different from heading font (if possible)
+  if (goodFonts.length > 1 && bodyIndex === headingIndex) {
+    bodyIndex = (bodyIndex + 1) % goodFonts.length
+  }
+  
+  return {
+    headingFont: goodFonts[headingIndex],
+    bodyFont: goodFonts[bodyIndex]
   }
 }
 

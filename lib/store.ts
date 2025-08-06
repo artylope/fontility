@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { nanoid } from 'nanoid'
+import { getRandomFontsForPair, GoogleFont } from './google-fonts'
 
 export interface FontPair {
   id: string
@@ -24,7 +25,7 @@ export interface FontPair {
 interface FontPairStore {
   fontPairs: FontPair[]
   activePairId: string | null
-  addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: Array<{family: string, category?: string}>) => void
+  addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: GoogleFont[]) => void
   deleteFontPair: (id: string) => void
   updateFontPair: (id: string, updates: Partial<Omit<FontPair, 'id'>>) => void
   setActivePair: (id: string) => void
@@ -57,31 +58,31 @@ export const useFontPairStore = create<FontPairStore>()(
       fontPairs: defaultFontPairs,
       activePairId: '1',
 
-      addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: Array<{family: string, category?: string}>) => {
+      addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: GoogleFont[]) => {
         const { fontPairs } = get()
         const newId = nanoid()
         
         // If no custom pair provided, generate random fonts
         let finalPair = customPair
         if (!customPair && availableFonts && availableFonts.length > 0) {
-          // Pick two random fonts
-          const headingFont = availableFonts[Math.floor(Math.random() * availableFonts.length)]
-          const bodyFont = availableFonts[Math.floor(Math.random() * availableFonts.length)]
+          const randomFonts = getRandomFontsForPair(availableFonts)
           
-          finalPair = {
-            headingFont: {
-              family: headingFont.family,
-              weight: '700',
-              category: headingFont.category || 'sans-serif',
-              lineHeight: 1.25,
-              letterSpacing: -0.025
-            },
-            bodyFont: {
-              family: bodyFont.family,
-              weight: '400', 
-              category: bodyFont.category || 'sans-serif',
-              lineHeight: 1.625,
-              letterSpacing: 0
+          if (randomFonts) {
+            finalPair = {
+              headingFont: {
+                family: randomFonts.headingFont.family,
+                weight: '700',
+                category: randomFonts.headingFont.category || 'sans-serif',
+                lineHeight: 1.25,
+                letterSpacing: -0.025
+              },
+              bodyFont: {
+                family: randomFonts.bodyFont.family,
+                weight: '400', 
+                category: randomFonts.bodyFont.category || 'sans-serif',
+                lineHeight: 1.625,
+                letterSpacing: 0
+              }
             }
           }
         }

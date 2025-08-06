@@ -155,7 +155,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[18.5rem] p-0">
+          <PopoverContent className="w-full p-0">
             <Command>
               <CommandInput placeholder="Search fonts..." />
               <CommandList>
