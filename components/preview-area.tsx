@@ -306,7 +306,7 @@ export function PreviewArea() {
 
           {/* Add New Pair Card */}
           <Card
-            className="bg-card p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col outline-transparent hover:-translate-y-1 hover:shadow-lg border-dashed border-2 border-border hover:border-foreground/50"
+            className="bg-card min-h-[20rem] p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col outline-transparent hover:-translate-y-1 hover:shadow-lg border-dashed border-2 border-border hover:border-foreground/50"
             onClick={() => addFontPair()}
           >
             <div className="flex flex-col h-full w-full items-center justify-center">

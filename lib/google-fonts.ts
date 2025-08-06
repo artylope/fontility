@@ -58,7 +58,7 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
   fetch(fontUrl, { method: 'HEAD' })
     .then(response => {
       if (!response.ok) {
-        console.error('Font not available:', fontFamily, 'Status:', response.status)
+        console.warn('Font not available:', fontFamily, 'Status:', response.status)
         return
       }
       
@@ -71,16 +71,16 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
 
       // Add error handling
       link.onerror = (event) => {
-        console.error('Failed to load font CSS:', fontFamily, 'Event:', event)
+        console.warn('Failed to load font CSS (will fallback):', fontFamily)
       }
       
       link.onload = () => {
-        
         // Try to load the actual font
         if ('fonts' in document) {
           document.fonts.load(`${limitedWeights[0]} 16px "${fontFamily}"`).then(() => {
+            // Font loaded successfully
           }).catch((error) => {
-            console.error('Font face loading failed:', fontFamily, error)
+            console.warn('Font face loading failed (will fallback):', fontFamily, error.message)
           })
         }
       }
@@ -88,7 +88,8 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
       document.head.appendChild(link)
     })
     .catch(error => {
-      console.error('Error checking font availability:', fontFamily, error)
+      // Network error - log but don't crash
+      console.warn('Network error loading font (will fallback):', fontFamily, error.message)
     })
 }
 
@@ -120,7 +121,7 @@ export async function validateGoogleFont(fontFamily: string): Promise<boolean> {
     
     return isValid
   } catch (error) {
-    console.error('Error validating font:', fontFamily, error)
+    console.warn('Error validating font (network issue):', fontFamily, error.message)
     return false
   }
 }
