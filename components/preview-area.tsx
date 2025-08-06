@@ -151,7 +151,7 @@ export function PreviewArea() {
   }, [activePairId])
 
   return (
-    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300" style={{ pointerEvents: 'none' }}>
+    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
       <div className="p-6 w-full" style={{ pointerEvents: 'auto' }}>
 
@@ -162,8 +162,8 @@ export function PreviewArea() {
               ref={(el) => {
                 cardRefs.current[pair.id] = el
               }}
-              className={`bg-white p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
-                ? 'outline-black shadow-lg'
+              className={`bg-card p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col ${activePairId === pair.id
+                ? 'outline-foreground shadow-lg'
                 : 'outline-transparent hover:-translate-y-1 hover:shadow-lg'
                 }`}
               onClick={(e) => {
@@ -176,7 +176,7 @@ export function PreviewArea() {
               <div className="flex flex-col h-full w-full">
                 {/* Header with name and randomize button */}
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs text-stone-500 uppercase tracking-wider font-semibold">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                     {pair.name}
                   </div>
                   <Button
@@ -207,7 +207,7 @@ export function PreviewArea() {
                       pairId={pair.id}
                       textType="heading"
                       key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
-                      className="text-[2.6em] text-stone-900 text-balance"
+                      className="text-[2.6em] text-foreground text-balance"
                       style={{
                         fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
                         fontWeight: pair.headingFont.weight,
@@ -231,7 +231,7 @@ export function PreviewArea() {
                       pairId={pair.id}
                       textType="body"
                       key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
-                      className="text-stone-600 mt-4 pb-4"
+                      className="text-muted-foreground mt-4 pb-4"
                       style={{
                         fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
                         fontWeight: pair.bodyFont.weight,
@@ -245,7 +245,7 @@ export function PreviewArea() {
                 </div>
 
                 {/* Metadata that sits at the bottom */}
-                <div className="pt-4 border-t border-stone-100 text-xs text-stone-500 space-y-1 mt-auto">
+                <div className="pt-4 border-t border-border text-xs text-muted-foreground space-y-1 mt-auto">
                   <div>
                     <span className="font-medium">Heading:</span> {pair.headingFont.family} {pair.headingFont.weight}
                   </div>

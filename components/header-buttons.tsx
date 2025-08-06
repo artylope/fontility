@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dices, Plus } from 'lucide-react'
+import { ModeToggle } from '@/components/mode-toggle'
 import { useFontPairStore } from '@/lib/store'
 import { GoogleFont, fetchGoogleFonts, getFontWeights } from '@/lib/google-fonts'
 
@@ -137,6 +138,7 @@ export function HeaderButtons() {
         <Plus className="w-4 h-4" />
         Add Set
       </Button>
+      <ModeToggle />
     </div>
   )
 }

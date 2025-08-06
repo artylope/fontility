@@ -99,7 +99,7 @@ export function Sidebar() {
   }
 
   return (
-    <div className="w-96 border-r border-stone-200 flex flex-col h-full overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent hover:scrollbar-thumb-stone-300">
+    <div className="w-96 border-r border-border flex flex-col h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent">
       <div className="flex-1 space-y-4 py-4 px-4">
         {fontPairs.map((pair) => (
           <Card
@@ -108,8 +108,8 @@ export function Sidebar() {
               cardRefs.current[pair.id] = el
             }}
             className={`space-y-1 p-3 pb-4 border-none shadow-none cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
-              ? 'bg-white outline-black shadow-lg'
-              : 'outline-transparent hover:outline-stone-200'
+              ? 'bg-card outline-foreground shadow-lg'
+              : 'outline-transparent hover:outline-border'
               }`}
             onClick={() => setActivePair(pair.id)}
           >
@@ -120,7 +120,7 @@ export function Sidebar() {
                   e.stopPropagation()
                   handleNameChange(pair.id, e.target.value)
                 }}
-                className="text-xs text-stone-500 uppercase tracking-wider font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0"
+                className="text-xs text-muted-foreground uppercase tracking-wider font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0"
               />
 
               <div className="flex items-center gap-1">
@@ -155,7 +155,7 @@ export function Sidebar() {
 
             <div className="space-y-4">
               <div>
-                <div className="text-xs font-medium text-stone-900 mb-2">Heading</div>
+                <div className="text-xs font-medium text-foreground mb-2">Heading</div>
                 <FontSelector
                   label=""
                   fontFamily={pair.headingFont.family}
@@ -165,7 +165,7 @@ export function Sidebar() {
               </div>
 
               <div>
-                <div className="text-xs font-medium text-stone-900 mb-2">Body</div>
+                <div className="text-xs font-medium text-foreground mb-2">Body</div>
                 <FontSelector
                   label=""
                   fontFamily={pair.bodyFont.family}

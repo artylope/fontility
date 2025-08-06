@@ -149,7 +149,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
               disabled={loading}
               className="w-full justify-between h-auto"
             >
-              <span className="text-sm text-stone-900">
+              <span className="text-sm text-foreground">
                 {loading ? 'Loading fonts...' : selectedFont?.family || 'Select font...'}
               </span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -230,7 +230,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
 
         <Select value={fontWeight} onValueChange={handleWeightChange} >
           <SelectTrigger className='w-full'>
-            <SelectValue placeholder="Select weight" className='text-stone-900'>
+            <SelectValue placeholder="Select weight" className='text-foreground'>
               {(() => {
                 const weightNames: Record<string, string> = {
                   '100': '100 Thin',
