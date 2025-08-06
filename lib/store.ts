@@ -47,60 +47,6 @@ const defaultFontPairs = [
       lineHeight: 1.625,
       letterSpacing: 0
     }
-  },
-  {
-    id: '2',
-    name: 'Set 2',
-    headingFont: {
-      family: 'Playfair Display',
-      weight: '700',
-      category: 'serif',
-      lineHeight: 1.2,
-      letterSpacing: -0.02
-    },
-    bodyFont: {
-      family: 'Source Sans Pro',
-      weight: '400',
-      category: 'sans-serif',
-      lineHeight: 1.6,
-      letterSpacing: 0.01
-    }
-  },
-  {
-    id: '3',
-    name: 'Set 3',
-    headingFont: {
-      family: 'Montserrat',
-      weight: '600',
-      category: 'sans-serif',
-      lineHeight: 1.3,
-      letterSpacing: -0.01
-    },
-    bodyFont: {
-      family: 'Open Sans',
-      weight: '400',
-      category: 'sans-serif',
-      lineHeight: 1.65,
-      letterSpacing: 0
-    }
-  },
-  {
-    id: '4',
-    name: 'Set 4',
-    headingFont: {
-      family: 'Merriweather',
-      weight: '700',
-      category: 'serif',
-      lineHeight: 1.25,
-      letterSpacing: -0.015
-    },
-    bodyFont: {
-      family: 'Lato',
-      weight: '400',
-      category: 'sans-serif',
-      lineHeight: 1.6,
-      letterSpacing: 0.005
-    }
   }
 ]
 
