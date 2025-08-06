@@ -80,7 +80,7 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
           document.fonts.load(`${limitedWeights[0]} 16px "${fontFamily}"`).then(() => {
             // Font loaded successfully
           }).catch((error) => {
-            console.warn('Font face loading failed (will fallback):', fontFamily, error.message)
+            console.warn('Font face loading failed (will fallback):', fontFamily, error instanceof Error ? error.message : String(error))
           })
         }
       }
@@ -89,7 +89,7 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
     })
     .catch(error => {
       // Network error - log but don't crash
-      console.warn('Network error loading font (will fallback):', fontFamily, error.message)
+      console.warn('Network error loading font (will fallback):', fontFamily, error instanceof Error ? error.message : String(error))
     })
 }
 
@@ -121,7 +121,7 @@ export async function validateGoogleFont(fontFamily: string): Promise<boolean> {
     
     return isValid
   } catch (error) {
-    console.warn('Error validating font (network issue):', fontFamily, error.message)
+    console.warn('Error validating font (network issue):', fontFamily, error instanceof Error ? error.message : String(error))
     return false
   }
 }
