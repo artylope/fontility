@@ -1,19 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { Check, ChevronsUpDown, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { GoogleFont, fetchGoogleFonts, getFontWeights, loadGoogleFont } from '@/lib/google-fonts'
+import { useFontPairStore, CustomFont } from '@/lib/store'
+import { FontUploadDialog } from './font-upload-dialog'
+import { Separator } from '@/components/ui/separator'
 
 interface FontSelectorProps {
   label: string
   fontFamily: string
   fontWeight: string
-  onFontChange: (family: string, weight: string, category?: string) => void
+  onFontChange: (family: string, weight: string, category?: string, isCustom?: boolean) => void
 }
 
 export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: FontSelectorProps) {
@@ -23,9 +26,18 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
   const [alphabeticalFonts, setAlphabeticalFonts] = useState<GoogleFont[]>([])
   const [loading, setLoading] = useState(true)
   const [fontsLoaded, setFontsLoaded] = useState(false)
-  const [selectedFont, setSelectedFont] = useState<GoogleFont | null>(null)
+  const [selectedFont, setSelectedFont] = useState<GoogleFont | CustomFont | null>(null)
+  const { customFonts } = useFontPairStore()
 
   useEffect(() => {
+    // Check if current font is a custom font first
+    const customFont = customFonts.find(f => f.family === fontFamily)
+    if (customFont) {
+      setSelectedFont(customFont)
+      setLoading(false)
+      return
+    }
+
     // Load default fonts immediately for common fonts like Inter
     if (fontFamily === 'Inter') {
       const interFont: GoogleFont = {
@@ -64,33 +76,36 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
         setFontsLoaded(true)
       }, 2000)
 
-      const currentFont = googleFonts.find(f => f.family === fontFamily)
+      // Don't update selected font if it's already a custom font
+      if (!customFont) {
+        const currentFont = googleFonts.find(f => f.family === fontFamily)
 
-      if (currentFont) {
-        setSelectedFont(currentFont)
-        const availableWeights = getFontWeights(currentFont)
-        loadGoogleFont(currentFont.family, availableWeights)
-        // Check if current weight is available, if not update to first available weight
-        if (!availableWeights.includes(fontWeight)) {
-          const newWeight = availableWeights[0]
-          onFontChange(currentFont.family, newWeight, currentFont.category)
-        }
-      } else if (fontFamily && fontFamily !== 'Inter') {
-        // Fallback: create a basic font object if not found in API response
-        const fallbackFont: GoogleFont = {
-          family: fontFamily,
-          variants: ['400', '700'],
-          category: 'sans-serif'
-        }
-        setSelectedFont(fallbackFont)
-        loadGoogleFont(fontFamily, ['400', '700'])
-        // Check if current weight is available, if not update to 400
-        if (!['400', '700'].includes(fontWeight)) {
-          onFontChange(fontFamily, '400', 'sans-serif')
+        if (currentFont) {
+          setSelectedFont(currentFont)
+          const availableWeights = getFontWeights(currentFont)
+          loadGoogleFont(currentFont.family, availableWeights)
+          // Check if current weight is available, if not update to first available weight
+          if (!availableWeights.includes(fontWeight)) {
+            const newWeight = availableWeights[0]
+            onFontChange(currentFont.family, newWeight, currentFont.category)
+          }
+        } else if (fontFamily && fontFamily !== 'Inter') {
+          // Fallback: create a basic font object if not found in API response
+          const fallbackFont: GoogleFont = {
+            family: fontFamily,
+            variants: ['400', '700'],
+            category: 'sans-serif'
+          }
+          setSelectedFont(fallbackFont)
+          loadGoogleFont(fontFamily, ['400', '700'])
+          // Check if current weight is available, if not update to 400
+          if (!['400', '700'].includes(fontWeight)) {
+            onFontChange(fontFamily, '400', 'sans-serif')
+          }
         }
       }
     })
-  }, [fontFamily, fontWeight])
+  }, [fontFamily, fontWeight, customFonts])
 
   const handleFontSelect = (font: GoogleFont) => {
 
@@ -119,22 +134,47 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
     onFontChange(font.family, newWeight, font.category)
   }
 
+  const handleCustomFontSelect = (font: CustomFont) => {
+    setSelectedFont(font)
+    setOpen(false)
+
+    // Get available weights for custom font
+    const availableWeights = font.variants.map(v => v.weight)
+    const newWeight = availableWeights.includes(fontWeight) ? fontWeight : availableWeights[0]
+    onFontChange(font.family, newWeight, font.category, true)
+  }
+
   const handleWeightChange = (weight: string) => {
     if (selectedFont) {
-      // Ensure we have all available weights loaded, including the new one
-      const availableWeights = getFontWeights(selectedFont)
+      let availableWeights: string[]
+      let isCustom = false
+
+      if (selectedFont.category === 'custom') {
+        // Custom font
+        availableWeights = (selectedFont as CustomFont).variants.map(v => v.weight)
+        isCustom = true
+      } else {
+        // Google font
+        availableWeights = getFontWeights(selectedFont as GoogleFont)
+      }
 
       if (availableWeights.includes(weight)) {
-        // Load the font with all available weights to ensure the selected weight is available
-        loadGoogleFont(selectedFont.family, availableWeights)
-        onFontChange(selectedFont.family, weight, selectedFont.category)
+        if (!isCustom) {
+          // Load the font with all available weights to ensure the selected weight is available
+          loadGoogleFont(selectedFont.family, availableWeights)
+        }
+        onFontChange(selectedFont.family, weight, selectedFont.category, isCustom)
       } else {
         console.warn('Weight not available:', weight, 'for font:', selectedFont.family)
       }
     }
   }
 
-  const availableWeights = selectedFont ? getFontWeights(selectedFont) : ['400']
+  const availableWeights = selectedFont ? 
+    (selectedFont.category === 'custom' ? 
+      (selectedFont as CustomFont).variants.map(v => v.weight) : 
+      getFontWeights(selectedFont as GoogleFont)
+    ) : ['400']
 
   return (
     <div className="space-y-3">
@@ -167,6 +207,55 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                     <div className="text-sm text-muted-foreground">Loading fonts...</div>
                   </div>
                 )}
+                <CommandGroup heading="Custom Fonts">
+                  {customFonts.length === 0 ? (
+                    <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+                      No custom fonts uploaded yet
+                    </div>
+                  ) : (
+                    customFonts.map((font) => (
+                      <CommandItem
+                        key={font.id}
+                        value={font.family}
+                        onSelect={() => handleCustomFontSelect(font)}
+                        className="flex items-center justify-between p-3"
+                      >
+                        <span
+                          className="font-medium"
+                          style={{ fontFamily: `"${font.family}", sans-serif` }}
+                        >
+                          {font.family} <span className="text-xs text-muted-foreground">(Custom)</span>
+                        </span>
+                        <Check
+                          className={cn(
+                            "ml-2 h-4 w-4",
+                            selectedFont?.family === font.family ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))
+                  )}
+                  
+                  {customFonts.length > 0 && <Separator className="my-2" />}
+                  
+                  <div className="px-3 py-2">
+                    <FontUploadDialog 
+                      trigger={
+                        <Button variant="outline" size="sm" className="w-full text-xs gap-2 h-8">
+                          <Upload className="w-3 h-3" />
+                          {customFonts.length === 0 ? 'Upload Your First Font' : 'Upload More Fonts'}
+                        </Button>
+                      }
+                      onFontUploaded={(fontFamily) => {
+                        // Find and select the newly uploaded font
+                        const newFont = customFonts.find(f => f.family === fontFamily)
+                        if (newFont) {
+                          handleCustomFontSelect(newFont)
+                        }
+                      }}
+                    />
+                  </div>
+                </CommandGroup>
                 {!loading && popularFonts.length > 0 && (
                   <CommandGroup heading="Popular Fonts">
                     {popularFonts.map((font) => (

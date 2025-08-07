@@ -33,22 +33,22 @@ export function SettingsPopover() {
     setFontLockType(value as FontLockType)
   }
 
-  const handleGlobalHeadingFontChange = (family: string, weight: string, category?: string) => {
-    setGlobalHeadingFont(family, weight, category)
+  const handleGlobalHeadingFontChange = (family: string, weight: string, category?: string, isCustom?: boolean) => {
+    setGlobalHeadingFont(family, weight, category, isCustom)
     // Update all pairs to use this font for headings
     fontPairs.forEach(pair => {
       updateFontPair(pair.id, {
-        headingFont: { family, weight, category, lineHeight: 1.25, letterSpacing: -0.025 }
+        headingFont: { family, weight, category, lineHeight: 1.25, letterSpacing: -0.025, isCustom }
       })
     })
   }
 
-  const handleGlobalBodyFontChange = (family: string, weight: string, category?: string) => {
-    setGlobalBodyFont(family, weight, category)
+  const handleGlobalBodyFontChange = (family: string, weight: string, category?: string, isCustom?: boolean) => {
+    setGlobalBodyFont(family, weight, category, isCustom)
     // Update all pairs to use this font for body text
     fontPairs.forEach(pair => {
       updateFontPair(pair.id, {
-        bodyFont: { family, weight, category, lineHeight: 1.625, letterSpacing: 0 }
+        bodyFont: { family, weight, category, lineHeight: 1.625, letterSpacing: 0, isCustom }
       })
     })
   }

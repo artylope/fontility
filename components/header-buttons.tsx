@@ -30,7 +30,9 @@ export function HeaderButtons() {
 
     if (isHeadingLocked && fontLock.globalHeadingFont) {
       // Use locked heading font
-      headingFont = allFonts.find(f => f.family === fontLock.globalHeadingFont!.family) || allFonts[0]
+      headingFont = fontLock.globalHeadingFont.isCustom ? 
+        { family: fontLock.globalHeadingFont.family, category: 'custom' } :
+        allFonts.find(f => f.family === fontLock.globalHeadingFont!.family) || allFonts[0]
       randomHeadingWeight = fontLock.globalHeadingFont.weight
     } else {
       // Get random heading font - filter for fonts suitable for headings
@@ -45,7 +47,9 @@ export function HeaderButtons() {
 
     if (isBodyLocked && fontLock.globalBodyFont) {
       // Use locked body font
-      bodyFont = allFonts.find(f => f.family === fontLock.globalBodyFont!.family) || allFonts[0]
+      bodyFont = fontLock.globalBodyFont.isCustom ?
+        { family: fontLock.globalBodyFont.family, category: 'custom' } :
+        allFonts.find(f => f.family === fontLock.globalBodyFont!.family) || allFonts[0]
       randomBodyWeight = fontLock.globalBodyFont.weight
     } else {
       // Get random body font
@@ -64,14 +68,16 @@ export function HeaderButtons() {
         weight: randomHeadingWeight,
         category: headingFont.category,
         lineHeight: 1.25,
-        letterSpacing: -0.025
+        letterSpacing: -0.025,
+        isCustom: isHeadingLocked ? fontLock.globalHeadingFont?.isCustom : false
       },
       bodyFont: {
         family: bodyFont.family,
         weight: randomBodyWeight,
         category: bodyFont.category,
         lineHeight: 1.625,
-        letterSpacing: 0
+        letterSpacing: 0,
+        isCustom: isBodyLocked ? fontLock.globalBodyFont?.isCustom : false
       }
     })
   }
