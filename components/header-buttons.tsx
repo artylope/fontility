@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dices } from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
-import { SettingsPopover } from '@/components/settings-popover'
 import { useFontPairStore } from '@/lib/store'
 import { GoogleFont, fetchGoogleFonts, getFontWeights } from '@/lib/google-fonts'
 
@@ -85,7 +84,6 @@ export function HeaderButtons() {
 
   return (
     <div className="flex items-center gap-2">
-      <SettingsPopover />
       <Button
         onClick={randomizeAllFontPairs}
         size="sm"
