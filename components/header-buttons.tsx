@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dices } from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
+import { SettingsPopover } from '@/components/settings-popover'
 import { useFontPairStore } from '@/lib/store'
 import { GoogleFont, fetchGoogleFonts, getFontWeights } from '@/lib/google-fonts'
 
 export function HeaderButtons() {
-  const { fontPairs, updateFontPair } = useFontPairStore()
+  const { fontPairs, fontLock, canAccessFontLocking, updateFontPair } = useFontPairStore()
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
 
   useEffect(() => {
@@ -18,30 +19,42 @@ export function HeaderButtons() {
   const randomizeFontPair = (id: string) => {
     if (allFonts.length === 0) return
 
-    // Get two random fonts
-    const randomIndex1 = Math.floor(Math.random() * Math.min(allFonts.length, 100)) // Top 100 fonts for better quality
-    const randomIndex2 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
+    const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
+    const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
 
-    const headingFont = allFonts[randomIndex1]
-    const bodyFont = allFonts[randomIndex2]
+    // Get current font pair to preserve locked fonts
+    const currentPair = fontPairs.find(pair => pair.id === id)
+    if (!currentPair) return
 
-    // Get available weights for each font
-    const headingWeights = getFontWeights(headingFont)
-    const bodyWeights = getFontWeights(bodyFont)
+    let headingFont, bodyFont, randomHeadingWeight, randomBodyWeight
 
-    // Filter body weights to be 300-400 range
-    const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
-    const finalBodyWeights = bodyWeightOptions.length > 0 ? bodyWeightOptions : bodyWeights.filter(weight => parseInt(weight) <= 400)
+    if (isHeadingLocked && fontLock.globalHeadingFont) {
+      // Use locked heading font
+      headingFont = allFonts.find(f => f.family === fontLock.globalHeadingFont!.family) || allFonts[0]
+      randomHeadingWeight = fontLock.globalHeadingFont.weight
+    } else {
+      // Get random heading font
+      const randomIndex1 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
+      headingFont = allFonts[randomIndex1]
+      const headingWeights = getFontWeights(headingFont)
+      const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= 400 && parseInt(weight) <= 900)
+      const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights
+      randomHeadingWeight = finalHeadingWeights[Math.floor(Math.random() * finalHeadingWeights.length)]
+    }
 
-    // Filter heading weights to be 400-900 range and always bolder than body
-    const randomBodyWeight = finalBodyWeights[Math.floor(Math.random() * finalBodyWeights.length)]
-    const bodyWeightNum = parseInt(randomBodyWeight)
-    const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= Math.max(400, bodyWeightNum + 100) && parseInt(weight) <= 900)
-    const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights.filter(weight => parseInt(weight) > bodyWeightNum)
-
-    const randomHeadingWeight = finalHeadingWeights.length > 0
-      ? finalHeadingWeights[Math.floor(Math.random() * finalHeadingWeights.length)]
-      : headingWeights[headingWeights.length - 1] // fallback to boldest available
+    if (isBodyLocked && fontLock.globalBodyFont) {
+      // Use locked body font
+      bodyFont = allFonts.find(f => f.family === fontLock.globalBodyFont!.family) || allFonts[0]
+      randomBodyWeight = fontLock.globalBodyFont.weight
+    } else {
+      // Get random body font
+      const randomIndex2 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
+      bodyFont = allFonts[randomIndex2]
+      const bodyWeights = getFontWeights(bodyFont)
+      const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
+      const finalBodyWeights = bodyWeightOptions.length > 0 ? bodyWeightOptions : bodyWeights.filter(weight => parseInt(weight) <= 400)
+      randomBodyWeight = finalBodyWeights[Math.floor(Math.random() * finalBodyWeights.length)]
+    }
 
     // Update the font pair
     updateFontPair(id, {
@@ -72,6 +85,7 @@ export function HeaderButtons() {
 
   return (
     <div className="flex items-center gap-2">
+      <SettingsPopover />
       <Button
         onClick={randomizeAllFontPairs}
         size="sm"

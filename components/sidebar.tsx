@@ -1,16 +1,28 @@
 'use client'
 
-import { Plus, Trash2, Dices } from 'lucide-react'
+import { Plus, Trash2, Dices, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { FontSelector } from './font-selector'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useFontPairStore } from '@/lib/store'
 import { useState, useEffect, useRef } from 'react'
 import { GoogleFont, fetchGoogleFonts, getFontWeights } from '@/lib/google-fonts'
 
 export function Sidebar() {
-  const { fontPairs, activePairId, addFontPair, deleteFontPair, updateFontPair, setActivePair } = useFontPairStore()
+  const {
+    fontPairs,
+    activePairId,
+    fontLock,
+    addFontPair,
+    deleteFontPair,
+    updateFontPair,
+    setActivePair,
+    setGlobalHeadingFont,
+    setGlobalBodyFont,
+    canAccessFontLocking
+  } = useFontPairStore()
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
@@ -46,30 +58,35 @@ export function Sidebar() {
   const randomizeFontPair = (id: string) => {
     if (allFonts.length === 0) return
 
-    // Get two random fonts
-    const randomIndex1 = Math.floor(Math.random() * Math.min(allFonts.length, 100)) // Top 100 fonts for better quality
-    const randomIndex2 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
+    let headingFont, bodyFont, randomHeadingWeight, randomBodyWeight
 
-    const headingFont = allFonts[randomIndex1]
-    const bodyFont = allFonts[randomIndex2]
+    if (isHeadingLocked && fontLock.globalHeadingFont) {
+      // Use locked heading font
+      headingFont = allFonts.find(f => f.family === fontLock.globalHeadingFont!.family) || allFonts[0]
+      randomHeadingWeight = fontLock.globalHeadingFont.weight
+    } else {
+      // Get random heading font
+      const randomIndex1 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
+      headingFont = allFonts[randomIndex1]
+      const headingWeights = getFontWeights(headingFont)
+      const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= 400 && parseInt(weight) <= 900)
+      const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights
+      randomHeadingWeight = finalHeadingWeights[Math.floor(Math.random() * finalHeadingWeights.length)]
+    }
 
-    // Get available weights for each font
-    const headingWeights = getFontWeights(headingFont)
-    const bodyWeights = getFontWeights(bodyFont)
-
-    // Filter body weights to be 300-400 range
-    const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
-    const finalBodyWeights = bodyWeightOptions.length > 0 ? bodyWeightOptions : bodyWeights.filter(weight => parseInt(weight) <= 400)
-
-    // Filter heading weights to be 400-900 range and always bolder than body
-    const randomBodyWeight = finalBodyWeights[Math.floor(Math.random() * finalBodyWeights.length)]
-    const bodyWeightNum = parseInt(randomBodyWeight)
-    const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= Math.max(400, bodyWeightNum + 100) && parseInt(weight) <= 900)
-    const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights.filter(weight => parseInt(weight) > bodyWeightNum)
-
-    const randomHeadingWeight = finalHeadingWeights.length > 0
-      ? finalHeadingWeights[Math.floor(Math.random() * finalHeadingWeights.length)]
-      : headingWeights[headingWeights.length - 1] // fallback to boldest available
+    if (isBodyLocked && fontLock.globalBodyFont) {
+      // Use locked body font
+      bodyFont = allFonts.find(f => f.family === fontLock.globalBodyFont!.family) || allFonts[0]
+      randomBodyWeight = fontLock.globalBodyFont.weight
+    } else {
+      // Get random body font
+      const randomIndex2 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
+      bodyFont = allFonts[randomIndex2]
+      const bodyWeights = getFontWeights(bodyFont)
+      const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
+      const finalBodyWeights = bodyWeightOptions.length > 0 ? bodyWeightOptions : bodyWeights.filter(weight => parseInt(weight) <= 400)
+      randomBodyWeight = finalBodyWeights[Math.floor(Math.random() * finalBodyWeights.length)]
+    }
 
     // Update the font pair
     updateFontPair(id, {
@@ -98,8 +115,64 @@ export function Sidebar() {
     })
   }
 
+  const handleGlobalHeadingFontChange = (family: string, weight: string, category?: string) => {
+    setGlobalHeadingFont(family, weight, category)
+    // Update all pairs to use this font for headings
+    fontPairs.forEach(pair => {
+      updateFontPair(pair.id, {
+        headingFont: { family, weight, category, lineHeight: 1.25, letterSpacing: -0.025 }
+      })
+    })
+  }
+
+  const handleGlobalBodyFontChange = (family: string, weight: string, category?: string) => {
+    setGlobalBodyFont(family, weight, category)
+    // Update all pairs to use this font for body text
+    fontPairs.forEach(pair => {
+      updateFontPair(pair.id, {
+        bodyFont: { family, weight, category, lineHeight: 1.625, letterSpacing: 0 }
+      })
+    })
+  }
+
+  const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
+  const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
+
   return (
     <div className="w-88 border-r border-border flex flex-col h-full">
+      {/* Global font selectors (shown when font locking is active) */}
+      {(isHeadingLocked || isBodyLocked) && (
+        <div className="border-b border-border p-4 bg-muted/50">
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-foreground">Global Font Lock</h3>
+
+            {isHeadingLocked && (
+              <div>
+                <div className="text-xs font-medium text-foreground mb-2">Global Heading Font</div>
+                <FontSelector
+                  label=""
+                  fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
+                  fontWeight={fontLock.globalHeadingFont?.weight || '700'}
+                  onFontChange={handleGlobalHeadingFontChange}
+                />
+              </div>
+            )}
+
+            {isBodyLocked && (
+              <div>
+                <div className="text-xs font-medium text-foreground mb-2">Global Body Font</div>
+                <FontSelector
+                  label=""
+                  fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
+                  fontWeight={fontLock.globalBodyFont?.weight || '400'}
+                  onFontChange={handleGlobalBodyFontChange}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
         <div className="space-y-4 py-4 px-4">
@@ -156,25 +229,65 @@ export function Sidebar() {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <div className="text-xs font-medium text-foreground mb-2">Heading</div>
-                  <FontSelector
-                    label=""
-                    fontFamily={pair.headingFont.family}
-                    fontWeight={pair.headingFont.weight}
-                    onFontChange={(family, weight, category) => handleHeadingFontChange(pair.id, family, weight, category)}
-                  />
-                </div>
+                {!isHeadingLocked && (
+                  <div>
+                    <div className="text-xs font-medium text-foreground mb-2">Heading</div>
+                    <FontSelector
+                      label=""
+                      fontFamily={pair.headingFont.family}
+                      fontWeight={pair.headingFont.weight}
+                      onFontChange={(family, weight, category) => handleHeadingFontChange(pair.id, family, weight, category)}
+                    />
+                  </div>
+                )}
 
-                <div>
-                  <div className="text-xs font-medium text-foreground mb-2">Body</div>
-                  <FontSelector
-                    label=""
-                    fontFamily={pair.bodyFont.family}
-                    fontWeight={pair.bodyFont.weight}
-                    onFontChange={(family, weight, category) => handleBodyFontChange(pair.id, family, weight, category)}
-                  />
-                </div>
+                {isHeadingLocked && (
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-medium text-foreground mb-2">
+                      <span>Heading</span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Lock className="w-3 h-3 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Heading font is globally locked. Unlock in settings.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                )}
+
+                {!isBodyLocked && (
+                  <div>
+                    <div className="text-xs font-medium text-foreground mb-2">Body</div>
+                    <FontSelector
+                      label=""
+                      fontFamily={pair.bodyFont.family}
+                      fontWeight={pair.bodyFont.weight}
+                      onFontChange={(family, weight, category) => handleBodyFontChange(pair.id, family, weight, category)}
+                    />
+                  </div>
+                )}
+
+                {isBodyLocked && (
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-medium text-foreground mb-2">
+                      <span>Body</span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Lock className="w-3 h-3 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Body font is globally locked. Unlock in settings.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
           ))}

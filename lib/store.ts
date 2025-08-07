@@ -3,6 +3,30 @@ import { persist } from 'zustand/middleware'
 import { nanoid } from 'nanoid'
 import { getRandomFontsForPair, GoogleFont } from './google-fonts'
 
+export type FontLockType = 'headings' | 'body'
+
+export interface FontLockSettings {
+  enabled: boolean
+  lockType: FontLockType
+  globalHeadingFont?: {
+    family: string
+    weight: string
+    category?: string
+  }
+  globalBodyFont?: {
+    family: string
+    weight: string
+    category?: string
+  }
+}
+
+export interface UserTier {
+  tier: 'free' | 'pro'
+  features: {
+    fontLocking: boolean
+  }
+}
+
 export interface FontPair {
   id: string
   name: string
@@ -25,10 +49,18 @@ export interface FontPair {
 interface FontPairStore {
   fontPairs: FontPair[]
   activePairId: string | null
+  fontLock: FontLockSettings
+  userTier: UserTier
   addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: GoogleFont[]) => void
   deleteFontPair: (id: string) => void
   updateFontPair: (id: string, updates: Partial<Omit<FontPair, 'id'>>) => void
   setActivePair: (id: string) => void
+  setFontLockEnabled: (enabled: boolean) => void
+  setFontLockType: (type: FontLockType) => void
+  setGlobalHeadingFont: (family: string, weight: string, category?: string) => void
+  setGlobalBodyFont: (family: string, weight: string, category?: string) => void
+  setUserTier: (tier: 'free' | 'pro') => void
+  canAccessFontLocking: () => boolean
 }
 
 const defaultFontPairs = [
@@ -57,6 +89,20 @@ export const useFontPairStore = create<FontPairStore>()(
     (set, get) => ({
       fontPairs: defaultFontPairs,
       activePairId: '1',
+      
+      fontLock: {
+        enabled: false,
+        lockType: 'headings',
+        globalHeadingFont: undefined,
+        globalBodyFont: undefined,
+      },
+      
+      userTier: {
+        tier: 'free',
+        features: {
+          fontLocking: true,
+        }
+      },
 
       addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: GoogleFont[]) => {
         const { fontPairs } = get()
@@ -140,7 +186,52 @@ export const useFontPairStore = create<FontPairStore>()(
 
       setActivePair: (id: string) => {
         set({ activePairId: id })
-      }
+      },
+
+      setFontLockEnabled: (enabled: boolean) => {
+        set(state => ({
+          fontLock: { ...state.fontLock, enabled }
+        }))
+      },
+
+      setFontLockType: (lockType: FontLockType) => {
+        set(state => ({
+          fontLock: { ...state.fontLock, lockType }
+        }))
+      },
+
+      setGlobalHeadingFont: (family: string, weight: string, category?: string) => {
+        set(state => ({
+          fontLock: {
+            ...state.fontLock,
+            globalHeadingFont: { family, weight, category }
+          }
+        }))
+      },
+
+      setGlobalBodyFont: (family: string, weight: string, category?: string) => {
+        set(state => ({
+          fontLock: {
+            ...state.fontLock,
+            globalBodyFont: { family, weight, category }
+          }
+        }))
+      },
+
+      setUserTier: (tier: 'free' | 'pro') => {
+        const features = tier === 'pro' ? {
+          fontLocking: true,
+        } : {
+          fontLocking: true,
+        }
+        
+        set({ userTier: { tier, features } })
+      },
+
+      canAccessFontLocking: () => {
+        const { userTier } = get()
+        return userTier.features.fontLocking
+      },
     }),
     {
       name: 'fontility-storage',
