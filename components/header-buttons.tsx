@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dices } from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
+import { SettingsPopover } from '@/components/settings-popover'
 import { useFontPairStore } from '@/lib/store'
-import { GoogleFont, fetchGoogleFonts, getFontWeights } from '@/lib/google-fonts'
+import { GoogleFont, fetchGoogleFonts, getFontWeights, isGoodForHeadings } from '@/lib/google-fonts'
 
 export function HeaderButtons() {
   const { fontPairs, fontLock, canAccessFontLocking, updateFontPair } = useFontPairStore()
@@ -32,9 +33,10 @@ export function HeaderButtons() {
       headingFont = allFonts.find(f => f.family === fontLock.globalHeadingFont!.family) || allFonts[0]
       randomHeadingWeight = fontLock.globalHeadingFont.weight
     } else {
-      // Get random heading font
-      const randomIndex1 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
-      headingFont = allFonts[randomIndex1]
+      // Get random heading font - filter for fonts suitable for headings
+      const suitableHeadingFonts = allFonts.filter(isGoodForHeadings)
+      const randomIndex1 = Math.floor(Math.random() * Math.min(suitableHeadingFonts.length, 100))
+      headingFont = suitableHeadingFonts[randomIndex1] || allFonts[0] // fallback to any font if none suitable
       const headingWeights = getFontWeights(headingFont)
       const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= 400 && parseInt(weight) <= 900)
       const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights
@@ -84,6 +86,7 @@ export function HeaderButtons() {
 
   return (
     <div className="flex items-center gap-2">
+      <SettingsPopover />
       <Button
         onClick={randomizeAllFontPairs}
         size="sm"

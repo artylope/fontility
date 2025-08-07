@@ -47,6 +47,62 @@ function isGoodForRandomSelection(font: GoogleFont): boolean {
   return true
 }
 
+export function isGoodForHeadings(font: GoogleFont): boolean {
+  const family = font.family.toLowerCase()
+  
+  // First check general suitability
+  if (!isGoodForRandomSelection(font)) {
+    return false
+  }
+  
+  // Additional blacklist specifically for headings - more comprehensive icon font detection
+  const headingBlacklist = [
+    'icons',
+    'icon',
+    'emoji',
+    'symbol',
+    'symbols',
+    'material',
+    'pictogram',
+    'glyph',
+    'dingbat',
+    'webdings',
+    'wingdings',
+    'fontawesome',
+    'font awesome',
+    'fa-',
+    'icomoon',
+    'feather'
+  ]
+  
+  // Check if font name contains any icon-related terms
+  if (headingBlacklist.some(term => family.includes(term))) {
+    return false
+  }
+  
+  // Check category - exclude display fonts that are likely decorative/icon fonts
+  if (font.category === 'display') {
+    // Allow some well-known display fonts that work for headings
+    const allowedDisplayFonts = [
+      'playfair display',
+      'merriweather',
+      'lora', 
+      'crimson text',
+      'pt serif',
+      'georgia',
+      'times',
+      'baskerville'
+    ]
+    
+    if (!allowedDisplayFonts.some(allowed => family.includes(allowed))) {
+      // Be more selective with display fonts for headings
+      return false
+    }
+  }
+  
+  return true
+}
+
 export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_FONTS_API_KEY
 
@@ -75,28 +131,24 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
 }
 
 export function getRandomFontsForPair(allFonts: GoogleFont[]): { headingFont: GoogleFont, bodyFont: GoogleFont } | null {
-  // Filter fonts suitable for random selection
-  const goodFonts = allFonts.filter(isGoodForRandomSelection)
+  // Filter fonts suitable for headings and body text separately
+  const goodHeadingFonts = allFonts.filter(isGoodForHeadings)
+  const goodBodyFonts = allFonts.filter(isGoodForRandomSelection)
   
-  if (goodFonts.length < 2) {
-    console.warn(`Not enough suitable fonts for randomization. Found ${goodFonts.length} fonts`)
+  if (goodHeadingFonts.length === 0 || goodBodyFonts.length === 0) {
+    console.warn(`Not enough suitable fonts for randomization. Headings: ${goodHeadingFonts.length}, Body: ${goodBodyFonts.length}`)
     return null
   }
   
-  console.log(`Selecting from ${goodFonts.length} suitable fonts out of ${allFonts.length} total fonts`)
+  console.log(`Selecting from ${goodHeadingFonts.length} heading fonts and ${goodBodyFonts.length} body fonts`)
   
-  // Pick two different random fonts
-  const headingIndex = Math.floor(Math.random() * goodFonts.length)
-  let bodyIndex = Math.floor(Math.random() * goodFonts.length)
-  
-  // Ensure body font is different from heading font (if possible)
-  if (goodFonts.length > 1 && bodyIndex === headingIndex) {
-    bodyIndex = (bodyIndex + 1) % goodFonts.length
-  }
+  // Pick random fonts from appropriate pools
+  const headingIndex = Math.floor(Math.random() * goodHeadingFonts.length)
+  const bodyIndex = Math.floor(Math.random() * goodBodyFonts.length)
   
   return {
-    headingFont: goodFonts[headingIndex],
-    bodyFont: goodFonts[bodyIndex]
+    headingFont: goodHeadingFonts[headingIndex],
+    bodyFont: goodBodyFonts[bodyIndex]
   }
 }
 
