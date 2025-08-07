@@ -287,7 +287,7 @@ export function Sidebar() {
         <TabsContent value="basic" className="flex-1 flex flex-col">
           {/* Scrollable content area for Basic tab */}
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
-            <FontPairsList showLocked={false} />
+            <FontPairsList showLocked={true} />
           </div>
 
           {/* Sticky bottom section with Add Pair button */}
