@@ -208,6 +208,23 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                   </div>
                 )}
                 <CommandGroup heading="Custom Fonts">
+                  <div className="px-2 pb-2">
+                    <FontUploadDialog
+                      trigger={
+                        <Button variant="outline" size="sm" className="w-full text-xs gap-2 h-8">
+                          <Upload className="w-3 h-3" />
+                          {customFonts.length === 0 ? 'Upload Your First Font' : 'Upload More Fonts'}
+                        </Button>
+                      }
+                      onFontUploaded={(fontFamily) => {
+                        // Find and select the newly uploaded font
+                        const newFont = customFonts.find(f => f.family === fontFamily)
+                        if (newFont) {
+                          handleCustomFontSelect(newFont)
+                        }
+                      }}
+                    />
+                  </div>
                   {customFonts.length === 0 ? (
                     <div className="px-3 py-4 text-center text-sm text-muted-foreground">
                       No custom fonts uploaded yet
@@ -241,23 +258,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
 
 
 
-                  <div className="px-3 py-2">
-                    <FontUploadDialog
-                      trigger={
-                        <Button variant="outline" size="sm" className="w-full text-xs gap-2 h-8">
-                          <Upload className="w-3 h-3" />
-                          {customFonts.length === 0 ? 'Upload Your First Font' : 'Upload More Fonts'}
-                        </Button>
-                      }
-                      onFontUploaded={(fontFamily) => {
-                        // Find and select the newly uploaded font
-                        const newFont = customFonts.find(f => f.family === fontFamily)
-                        if (newFont) {
-                          handleCustomFontSelect(newFont)
-                        }
-                      }}
-                    />
-                  </div>
+
                 </CommandGroup>
                 {!loading && popularFonts.length > 0 && (
                   <CommandGroup heading="Popular Fonts">
@@ -321,7 +322,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
         </Popover>
 
         <Select value={fontWeight} onValueChange={handleWeightChange} >
-          <SelectTrigger className='w-full'>
+          <SelectTrigger className='w-full bg-white'>
             <SelectValue placeholder="Select weight" className='text-foreground'>
               {(() => {
                 const weightNames: Record<string, string> = {

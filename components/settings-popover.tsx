@@ -101,7 +101,7 @@ export function SettingsPopover() {
             </div>
 
             {fontLock.enabled && canAccessFontLocking() && (
-              <div className="space-y-4 border border-border rounded-lg p-4">
+              <div className="space-y-4 p-4 border border-border rounded-lg">
                 <div className="space-y-3">
                   <p className="text-sm font-medium">Choose which font type to lock</p>
                   <RadioGroup
@@ -122,37 +122,36 @@ export function SettingsPopover() {
                       </Label>
                     </div>
                   </RadioGroup>
+
+                  {(isHeadingLocked || isBodyLocked) && (
+                    <div className="space-y-3 bg-muted rounded-lg p-4 mt-2">
+
+                      {isHeadingLocked && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-foreground">Global Heading Font</div>
+                          <FontSelector
+                            label=""
+                            fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
+                            fontWeight={fontLock.globalHeadingFont?.weight || '700'}
+                            onFontChange={handleGlobalHeadingFontChange}
+                          />
+                        </div>
+                      )}
+
+                      {isBodyLocked && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-foreground">Global Body Font</div>
+                          <FontSelector
+                            label=""
+                            fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
+                            fontWeight={fontLock.globalBodyFont?.weight || '400'}
+                            onFontChange={handleGlobalBodyFontChange}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-
-            {(isHeadingLocked || isBodyLocked) && (
-              <div className="space-y-4 border border-border rounded-lg p-4 bg-muted/30">
-                <h5 className="text-sm font-medium text-foreground">Global Font Selection</h5>
-
-                {isHeadingLocked && (
-                  <div>
-                    <div className="text-xs font-medium text-foreground mb-2">Global Heading Font</div>
-                    <FontSelector
-                      label=""
-                      fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
-                      fontWeight={fontLock.globalHeadingFont?.weight || '700'}
-                      onFontChange={handleGlobalHeadingFontChange}
-                    />
-                  </div>
-                )}
-
-                {isBodyLocked && (
-                  <div>
-                    <div className="text-xs font-medium text-foreground mb-2">Global Body Font</div>
-                    <FontSelector
-                      label=""
-                      fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
-                      fontWeight={fontLock.globalBodyFont?.weight || '400'}
-                      onFontChange={handleGlobalBodyFontChange}
-                    />
-                  </div>
-                )}
               </div>
             )}
 
