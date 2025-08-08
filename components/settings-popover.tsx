@@ -73,9 +73,7 @@ export function SettingsPopover() {
         <div className="space-y-6">
           <div className="space-y-2">
             <h4 className="font-medium leading-none">Settings</h4>
-            <p className="text-sm text-muted-foreground">
-              Configure font locking behavior
-            </p>
+
           </div>
 
           <div className="space-y-4">
@@ -85,9 +83,7 @@ export function SettingsPopover() {
                   <Label htmlFor="font-lock" className="text-sm font-medium">
                     Lock one font type across all styles
                   </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Use a single font for all headings or body text
-                  </p>
+
                 </div>
                 <div className="h-5 flex items-center">
                   <Switch
@@ -124,11 +120,11 @@ export function SettingsPopover() {
                   </RadioGroup>
 
                   {(isHeadingLocked || isBodyLocked) && (
-                    <div className="space-y-3 bg-muted rounded-lg p-4 mt-2">
+                    <div className="space-y-3 bg-muted rounded-lg px-4 pt-2 pb-4 mt-2">
 
                       {isHeadingLocked && (
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-foreground">Global Heading Font</div>
+                          {/* <div className="text-xs font-medium text-foreground">Global Heading Font</div> */}
                           <FontSelector
                             label=""
                             fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
@@ -140,7 +136,7 @@ export function SettingsPopover() {
 
                       {isBodyLocked && (
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-foreground">Global Body Font</div>
+                          {/* <div className="text-xs font-medium text-foreground">Global Body Font</div> */}
                           <FontSelector
                             label=""
                             fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
