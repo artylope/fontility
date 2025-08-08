@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Check, ChevronsUpDown, Upload } from 'lucide-react'
+import { Check, ChevronsUpDown, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils'
 import { GoogleFont, fetchGoogleFonts, getFontWeights, loadGoogleFont } from '@/lib/google-fonts'
 import { useFontPairStore, CustomFont } from '@/lib/store'
-import { FontUploadDialog } from './font-upload-dialog'
-import { Separator } from '@/components/ui/separator'
+import { CustomFontDialog } from './custom-font-dialog'
 
 interface FontSelectorProps {
   label: string
@@ -187,7 +186,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
               role="combobox"
               aria-expanded={open}
               disabled={loading}
-              className="w-full justify-between h-auto"
+              className="w-full justify-between h-auto hover:bg-white"
             >
               <span className="text-sm text-foreground !font-normal">
                 {loading ? 'Loading fonts...' : selectedFont?.family || 'Select font...'}
@@ -208,57 +207,22 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                   </div>
                 )}
                 <CommandGroup heading="Custom Fonts">
-                  <div className="px-2 pb-2">
-                    <FontUploadDialog
+                  <CommandItem
+                    value="use-custom-font"
+                    className="flex items-center gap-2 p-3 cursor-pointer"
+                    onSelect={() => {}}
+                  >
+                    <CustomFontDialog
                       trigger={
-                        <Button variant="outline" size="sm" className="w-full text-xs gap-2 h-8">
-                          <Upload className="w-3 h-3" />
-                          {customFonts.length === 0 ? 'Upload Your First Font' : 'Upload More Fonts'}
-                        </Button>
-                      }
-                      onFontUploaded={(fontFamily) => {
-                        // Find and select the newly uploaded font
-                        const newFont = customFonts.find(f => f.family === fontFamily)
-                        if (newFont) {
-                          handleCustomFontSelect(newFont)
-                        }
-                      }}
-                    />
-                  </div>
-                  {customFonts.length === 0 ? (
-                    <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                      No custom fonts uploaded yet
-                    </div>
-                  ) : (
-                    customFonts.map((font) => (
-                      <CommandItem
-                        key={font.id}
-                        value={font.family}
-                        onSelect={() => handleCustomFontSelect(font)}
-                        className="flex items-center justify-between p-3"
-                      >
-                        <div className='flex items-center gap-2 w-full grow justify-between'>
-                          <div
-                            className="font-medium flex-1"
-                            style={{ fontFamily: `"${font.family}", sans-serif` }}
-                          >
-                            {font.family}
-                          </div>
+                        <div className="flex items-center gap-2 w-full">
+                          <Settings className="w-4 h-4" />
+                          <span>Use custom font</span>
                         </div>
-
-                        <Check
-                          className={cn(
-                            "ml-2 h-4 w-4",
-                            selectedFont?.family === font.family ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                      </CommandItem>
-                    ))
-                  )}
-
-
-
-
+                      }
+                      selectedFont={selectedFont?.family || ''}
+                      onFontSelect={handleCustomFontSelect}
+                    />
+                  </CommandItem>
                 </CommandGroup>
                 {!loading && popularFonts.length > 0 && (
                   <CommandGroup heading="Popular Fonts">
