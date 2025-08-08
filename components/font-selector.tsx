@@ -221,13 +221,13 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                         onSelect={() => handleCustomFontSelect(font)}
                         className="flex items-center justify-between p-3"
                       >
-                        <div className='flex items-center gap-2'>
-                          <span
-                            className="font-medium"
+                        <div className='flex items-center gap-2 w-full grow justify-between'>
+                          <div
+                            className="font-medium flex-1"
                             style={{ fontFamily: `"${font.family}", sans-serif` }}
                           >
                             {font.family}
-                          </span> <Badge variant="outline" className="ml-2">Custom</Badge>
+                          </div> <Badge variant="outline" className="w-fit">Custom</Badge>
                         </div>
 
                         <Check
