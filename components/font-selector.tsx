@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { GoogleFont, fetchGoogleFonts, getFontWeights, loadGoogleFont } from '@/lib/google-fonts'
 import { useFontPairStore, CustomFont } from '@/lib/store'
@@ -196,8 +195,8 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+            <Command className='w-full'>
               <CommandInput placeholder="Search fonts..." />
               <CommandList>
                 <CommandEmpty>
@@ -227,7 +226,7 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                             style={{ fontFamily: `"${font.family}", sans-serif` }}
                           >
                             {font.family}
-                          </div> <Badge variant="outline" className="w-fit">Custom</Badge>
+                          </div>
                         </div>
 
                         <Check
