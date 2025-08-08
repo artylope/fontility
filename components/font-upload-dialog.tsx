@@ -54,7 +54,7 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
 
   const handleFilesSelected = useCallback(async (files: File[]) => {
     const validFiles = files.filter(isValidFontFile)
-    
+
     if (validFiles.length === 0) {
       alert('Please select valid font files (.ttf, .otf, .woff, .woff2)')
       return
@@ -64,7 +64,7 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
       validFiles.map(async (file) => {
         // Generate preview text by loading the font temporarily
         const url = URL.createObjectURL(file)
-        
+
         return {
           id: nanoid(),
           file,
@@ -76,7 +76,7 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
     )
 
     setFontFiles(prev => [...prev, ...newFontFiles])
-    
+
     // Auto-generate font family name from first file if not set
     if (!fontFamily && validFiles.length > 0) {
       const baseName = validFiles[0].name
@@ -90,7 +90,7 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDragOver(false)
-    
+
     const files = Array.from(e.dataTransfer.files)
     handleFilesSelected(files)
   }, [handleFilesSelected])
@@ -209,7 +209,7 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
         <DialogHeader>
           <DialogTitle>Upload Custom Font</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* Font Family Name */}
           <div className="space-y-2">
@@ -228,11 +228,10 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
           <div className="space-y-4">
             <Label>Font Files</Label>
             <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragOver 
-                  ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-primary/50'
-              }`}
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragOver
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:border-primary/50'
+                }`}
               onDrop={handleDrop}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
@@ -262,65 +261,65 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
               <Separator />
               <div className="space-y-3">
                 <Label>Font Variants ({fontFiles.length})</Label>
-              <div className="space-y-3">
-                {fontFiles.map((fontFile) => (
-                  <Card key={fontFile.id} className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        <span className="text-sm font-medium">{fontFile.file.name}</span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFontFile(fontFile.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <Label className="text-xs">Weight</Label>
-                        <Select
-                          value={fontFile.weight}
-                          onValueChange={(value) => updateFontFile(fontFile.id, { weight: value })}
+                <div className="space-y-3">
+                  {fontFiles.map((fontFile) => (
+                    <Card key={fontFile.id} className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          <span className="text-sm font-medium">{fontFile.file.name}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFontFile(fontFile.id)}
+                          className="text-destructive hover:text-destructive"
                         >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {weightOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          <X className="w-4 h-4" />
+                        </Button>
                       </div>
-                      
-                      <div className="flex-1">
-                        <Label className="text-xs">Style</Label>
-                        <Select
-                          value={fontFile.style}
-                          onValueChange={(value: 'normal' | 'italic') => updateFontFile(fontFile.id, { style: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="normal">Normal</SelectItem>
-                            <SelectItem value="italic">Italic</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
 
-                    {/* Font Preview */}
-                    {fontFile.preview && (
-                      <div className="mt-3 p-3 bg-muted rounded">
-                        <style>{`
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <Label className="text-xs">Weight</Label>
+                          <Select
+                            value={fontFile.weight}
+                            onValueChange={(value) => updateFontFile(fontFile.id, { weight: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {weightOptions.map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex-1">
+                          <Label className="text-xs">Style</Label>
+                          <Select
+                            value={fontFile.style}
+                            onValueChange={(value: 'normal' | 'italic') => updateFontFile(fontFile.id, { style: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="normal">Normal</SelectItem>
+                              <SelectItem value="italic">Italic</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Font Preview */}
+                      {fontFile.preview && (
+                        <div className="mt-3 p-3 bg-muted rounded">
+                          <style>{`
                           @font-face {
                             font-family: 'preview-${fontFile.id}';
                             src: url(${fontFile.preview});
@@ -328,22 +327,22 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
                             font-style: ${fontFile.style};
                           }
                         `}</style>
-                        <p 
-                          className="text-lg"
-                          style={{ 
-                            fontFamily: `preview-${fontFile.id}`, 
-                            fontWeight: fontFile.weight,
-                            fontStyle: fontFile.style
-                          }}
-                        >
-                          The quick brown fox jumps over the lazy dog
-                        </p>
-                      </div>
-                    )}
-                  </Card>
-                ))}
+                          <p
+                            className="text-lg"
+                            style={{
+                              fontFamily: `preview-${fontFile.id}`,
+                              fontWeight: fontFile.weight,
+                              fontStyle: fontFile.style
+                            }}
+                          >
+                            The quick brown fox jumps over the lazy dog
+                          </p>
+                        </div>
+                      )}
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
             </>
           )}
         </div>
@@ -352,8 +351,8 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleUpload} 
+          <Button
+            onClick={handleUpload}
             disabled={!fontFamily.trim() || fontFiles.length === 0 || loading}
             className="min-w-[120px]"
           >
