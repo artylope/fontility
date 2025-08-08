@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { GoogleFont, fetchGoogleFonts, getFontWeights, loadGoogleFont } from '@/lib/google-fonts'
 import { useFontPairStore, CustomFont } from '@/lib/store'
@@ -170,9 +171,9 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
     }
   }
 
-  const availableWeights = selectedFont ? 
-    (selectedFont.category === 'custom' ? 
-      (selectedFont as CustomFont).variants.map(v => v.weight) : 
+  const availableWeights = selectedFont ?
+    (selectedFont.category === 'custom' ?
+      (selectedFont as CustomFont).variants.map(v => v.weight) :
       getFontWeights(selectedFont as GoogleFont)
     ) : ['400']
 
@@ -220,12 +221,15 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                         onSelect={() => handleCustomFontSelect(font)}
                         className="flex items-center justify-between p-3"
                       >
-                        <span
-                          className="font-medium"
-                          style={{ fontFamily: `"${font.family}", sans-serif` }}
-                        >
-                          {font.family} <span className="text-xs text-muted-foreground">(Custom)</span>
-                        </span>
+                        <div className='flex items-center gap-2'>
+                          <span
+                            className="font-medium"
+                            style={{ fontFamily: `"${font.family}", sans-serif` }}
+                          >
+                            {font.family}
+                          </span> <Badge variant="outline" className="ml-2">Custom</Badge>
+                        </div>
+
                         <Check
                           className={cn(
                             "ml-2 h-4 w-4",
@@ -235,11 +239,11 @@ export function FontSelector({ label, fontFamily, fontWeight, onFontChange }: Fo
                       </CommandItem>
                     ))
                   )}
-                  
-                  {customFonts.length > 0 && <Separator className="my-2" />}
-                  
+
+
+
                   <div className="px-3 py-2">
-                    <FontUploadDialog 
+                    <FontUploadDialog
                       trigger={
                         <Button variant="outline" size="sm" className="w-full text-xs gap-2 h-8">
                           <Upload className="w-3 h-3" />
