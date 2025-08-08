@@ -210,7 +210,7 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
           <DialogTitle>Upload Custom Font</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-6">
+        <div className="space-y-6 py-4">
           {/* Font Family Name */}
           <div className="space-y-2">
             <Label htmlFor="fontFamily">Font Family Name</Label>
@@ -264,16 +264,16 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
 
               <div className="space-y-3">
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {fontFiles.map((fontFile) => (
-                    <div key={fontFile.id} className="">
+                    <div key={fontFile.id} className="px-4 py-2 bg-muted rounded-lg">
                       <div className='flex gap-2'>
                         <div className="flex items-center justify-between w-full gap-4">
                           <div className="flex items-center gap-2 flex-1">
                             <FileText className="w-4 h-4" />
                             <span className="text-sm font-medium">{fontFile.file.name}</span>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-1 items-center">
                             <div className="flex-1">
                               {/* <Label className="text-xs">Weight</Label> */}
                               <Select
@@ -322,7 +322,7 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
 
                       </div>
                       {/* Font Preview */}
-                      {fontFile.preview && (
+                      {/* {fontFile.preview && (
                         <div className="mt-3 p-3 bg-muted rounded">
                           <style>{`
                           @font-face {
@@ -343,7 +343,7 @@ export function FontUploadDialog({ trigger, onFontUploaded }: FontUploadDialogPr
                             The quick brown fox jumps over the lazy dog
                           </p>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   ))}
                 </div>
