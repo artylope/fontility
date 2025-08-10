@@ -9,6 +9,7 @@ import { Dices, Plus } from 'lucide-react'
 import { useFontPairStore } from '@/lib/store'
 import { loadGoogleFont, getFontWeights, fetchGoogleFonts, GoogleFont } from '@/lib/google-fonts'
 import { InteractiveText } from './interactive-text'
+import Masonry from 'react-masonry-css'
 
 // Helper function to get appropriate fallback font based on category
 function getFontFallback(category: string): string {
@@ -180,11 +181,22 @@ export function PreviewArea() {
   }
 
   return (
-    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent" style={{ pointerEvents: 'none' }}>
+    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent bg-muted" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
       <div className="p-6 w-full" style={{ pointerEvents: 'auto' }}>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
+        <Masonry
+          breakpointCols={{
+            default: 4,
+            1920: 4, // very large screens
+            1680: 3, // 2xl
+            1280: 2, // xl  
+            768: 1,  // md and below
+            640: 1   // sm
+          }}
+          className="flex w-full gap-4"
+          columnClassName="flex flex-col gap-4"
+        >
           {fontPairs.map((pair) => (
             <Card
               key={pair.id}
@@ -320,7 +332,7 @@ export function PreviewArea() {
               </div>
             </div>
           </Card>
-        </div>
+        </Masonry>
       </div>
     </div>
   )
