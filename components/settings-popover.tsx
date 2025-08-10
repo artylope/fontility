@@ -6,7 +6,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
-import { Cog } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Cog, RotateCcw } from 'lucide-react'
 import { FontSelector } from './font-selector'
 import { useFontPairStore, FontLockType } from '@/lib/store'
 
@@ -55,6 +66,12 @@ export function SettingsPopover() {
 
   const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
   const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
+
+  const handleResetApp = () => {
+    localStorage.clear()
+    sessionStorage.clear()
+    window.location.reload()
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -158,6 +175,31 @@ export function SettingsPopover() {
                 </p>
               </div>
             )}
+
+            <div className="pt-4 border-t border-border">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="w-full gap-2">
+                    <RotateCcw className="w-4 h-4" />
+                    Reset App Data
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset App Data</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete all your saved font pairs, settings, and preferences. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleResetApp} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Reset All Data
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         </div>
       </PopoverContent>
