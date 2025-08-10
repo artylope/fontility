@@ -79,14 +79,14 @@ export function PreviewArea() {
         family: headingFont.family,
         weight: randomHeadingWeight,
         category: headingFont.category,
-        lineHeight: 1.25,
-        letterSpacing: -0.025
+        lineHeight: 1.2,
+        letterSpacing: -0.03
       },
       bodyFont: {
         family: bodyFont.family,
         weight: randomBodyWeight,
         category: bodyFont.category,
-        lineHeight: 1.625,
+        lineHeight: 1.6,
         letterSpacing: 0
       }
     })
@@ -254,7 +254,7 @@ export function PreviewArea() {
                       pairId={pair.id}
                       textType="heading"
                       key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
-                      className="text-[2.6em] text-foreground text-balance"
+                      className="text-[2.3em] text-foreground text-balance"
                       style={{
                         fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
                         fontWeight: pair.headingFont.weight,
@@ -278,7 +278,7 @@ export function PreviewArea() {
                       pairId={pair.id}
                       textType="body"
                       key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
-                      className="text-muted-foreground mt-4 pb-4"
+                      className="text-muted-foreground mt-4 pb-4 text-sm"
                       style={{
                         fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
                         fontWeight: pair.bodyFont.weight,

@@ -31,7 +31,7 @@ const FONT_BLACKLIST = [
   'Jolly Lodger',
 ]
 
-function isGoodForRandomSelection(font: GoogleFont): boolean {
+export function isGoodForDisplay(font: GoogleFont): boolean {
   const family = font.family.toLowerCase()
   
   // Check blacklist
@@ -39,9 +39,65 @@ function isGoodForRandomSelection(font: GoogleFont): boolean {
     return false
   }
   
-  // Filter out fonts with "icon", "emoji", "symbol" in name
-  if (family.includes('icon') || family.includes('emoji') || family.includes('symbol')) {
+  // Comprehensive icon font detection - combines both previous filters
+  const iconBlacklist = [
+    'icon',
+    'icons', 
+    'emoji',
+    'symbol',
+    'symbols',
+    'material',
+    'pictogram',
+    'glyph',
+    'dingbat',
+    'webdings',
+    'wingdings',
+    'fontawesome',
+    'font awesome',
+    'fa-',
+    'icomoon',
+    'feather'
+  ]
+  
+  // Check if font name contains any icon-related terms
+  if (iconBlacklist.some(term => family.includes(term))) {
     return false
+  }
+  
+  return true
+}
+
+// Keep for backward compatibility but now uses isGoodForDisplay
+function isGoodForRandomSelection(font: GoogleFont): boolean {
+  return isGoodForDisplay(font)
+}
+
+export function isGoodForHeadings(font: GoogleFont): boolean {
+  const family = font.family.toLowerCase()
+  
+  // First check general suitability
+  if (!isGoodForDisplay(font)) {
+    return false
+  }
+  
+  // Check category - exclude display fonts that are likely decorative/icon fonts
+  if (font.category === 'display') {
+    // Allow some well-known display fonts that work for headings
+    const allowedDisplayFonts = [
+      'playfair display',
+      'merriweather',
+      'lora', 
+      'crimson text',
+      'pt serif',
+      'georgia',
+      'times',
+      'baskerville'
+    ]
+    
+    if (!allowedDisplayFonts.some(allowed => family.includes(allowed))) {
+      // Be more selective with display fonts for headings
+      return false
+    }
   }
   
   return true
@@ -75,28 +131,23 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
 }
 
 export function getRandomFontsForPair(allFonts: GoogleFont[]): { headingFont: GoogleFont, bodyFont: GoogleFont } | null {
-  // Filter fonts suitable for random selection
-  const goodFonts = allFonts.filter(isGoodForRandomSelection)
+  // Filter fonts suitable for display - use same filtering for both heading and body
+  const goodDisplayFonts = allFonts.filter(isGoodForDisplay)
   
-  if (goodFonts.length < 2) {
-    console.warn(`Not enough suitable fonts for randomization. Found ${goodFonts.length} fonts`)
+  if (goodDisplayFonts.length === 0) {
+    console.warn(`Not enough suitable fonts for randomization. Display fonts: ${goodDisplayFonts.length}`)
     return null
   }
   
-  console.log(`Selecting from ${goodFonts.length} suitable fonts out of ${allFonts.length} total fonts`)
+  console.log(`Selecting from ${goodDisplayFonts.length} display fonts for both heading and body`)
   
-  // Pick two different random fonts
-  const headingIndex = Math.floor(Math.random() * goodFonts.length)
-  let bodyIndex = Math.floor(Math.random() * goodFonts.length)
-  
-  // Ensure body font is different from heading font (if possible)
-  if (goodFonts.length > 1 && bodyIndex === headingIndex) {
-    bodyIndex = (bodyIndex + 1) % goodFonts.length
-  }
+  // Pick random fonts from the same filtered pool
+  const headingIndex = Math.floor(Math.random() * goodDisplayFonts.length)
+  const bodyIndex = Math.floor(Math.random() * goodDisplayFonts.length)
   
   return {
-    headingFont: goodFonts[headingIndex],
-    bodyFont: goodFonts[bodyIndex]
+    headingFont: goodDisplayFonts[headingIndex],
+    bodyFont: goodDisplayFonts[bodyIndex]
   }
 }
 
