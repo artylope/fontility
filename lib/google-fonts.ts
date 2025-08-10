@@ -31,7 +31,7 @@ const FONT_BLACKLIST = [
   'Jolly Lodger',
 ]
 
-function isGoodForRandomSelection(font: GoogleFont): boolean {
+export function isGoodForDisplay(font: GoogleFont): boolean {
   const family = font.family.toLowerCase()
   
   // Check blacklist
@@ -39,26 +39,10 @@ function isGoodForRandomSelection(font: GoogleFont): boolean {
     return false
   }
   
-  // Filter out fonts with "icon", "emoji", "symbol" in name
-  if (family.includes('icon') || family.includes('emoji') || family.includes('symbol')) {
-    return false
-  }
-  
-  return true
-}
-
-export function isGoodForHeadings(font: GoogleFont): boolean {
-  const family = font.family.toLowerCase()
-  
-  // First check general suitability
-  if (!isGoodForRandomSelection(font)) {
-    return false
-  }
-  
-  // Additional blacklist specifically for headings - more comprehensive icon font detection
-  const headingBlacklist = [
-    'icons',
+  // Comprehensive icon font detection - combines both previous filters
+  const iconBlacklist = [
     'icon',
+    'icons', 
     'emoji',
     'symbol',
     'symbols',
@@ -76,7 +60,23 @@ export function isGoodForHeadings(font: GoogleFont): boolean {
   ]
   
   // Check if font name contains any icon-related terms
-  if (headingBlacklist.some(term => family.includes(term))) {
+  if (iconBlacklist.some(term => family.includes(term))) {
+    return false
+  }
+  
+  return true
+}
+
+// Keep for backward compatibility but now uses isGoodForDisplay
+function isGoodForRandomSelection(font: GoogleFont): boolean {
+  return isGoodForDisplay(font)
+}
+
+export function isGoodForHeadings(font: GoogleFont): boolean {
+  const family = font.family.toLowerCase()
+  
+  // First check general suitability
+  if (!isGoodForDisplay(font)) {
     return false
   }
   
@@ -131,24 +131,23 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
 }
 
 export function getRandomFontsForPair(allFonts: GoogleFont[]): { headingFont: GoogleFont, bodyFont: GoogleFont } | null {
-  // Filter fonts suitable for headings and body text separately
-  const goodHeadingFonts = allFonts.filter(isGoodForHeadings)
-  const goodBodyFonts = allFonts.filter(isGoodForRandomSelection)
+  // Filter fonts suitable for display - use same filtering for both heading and body
+  const goodDisplayFonts = allFonts.filter(isGoodForDisplay)
   
-  if (goodHeadingFonts.length === 0 || goodBodyFonts.length === 0) {
-    console.warn(`Not enough suitable fonts for randomization. Headings: ${goodHeadingFonts.length}, Body: ${goodBodyFonts.length}`)
+  if (goodDisplayFonts.length === 0) {
+    console.warn(`Not enough suitable fonts for randomization. Display fonts: ${goodDisplayFonts.length}`)
     return null
   }
   
-  console.log(`Selecting from ${goodHeadingFonts.length} heading fonts and ${goodBodyFonts.length} body fonts`)
+  console.log(`Selecting from ${goodDisplayFonts.length} display fonts for both heading and body`)
   
-  // Pick random fonts from appropriate pools
-  const headingIndex = Math.floor(Math.random() * goodHeadingFonts.length)
-  const bodyIndex = Math.floor(Math.random() * goodBodyFonts.length)
+  // Pick random fonts from the same filtered pool
+  const headingIndex = Math.floor(Math.random() * goodDisplayFonts.length)
+  const bodyIndex = Math.floor(Math.random() * goodDisplayFonts.length)
   
   return {
-    headingFont: goodHeadingFonts[headingIndex],
-    bodyFont: goodBodyFonts[bodyIndex]
+    headingFont: goodDisplayFonts[headingIndex],
+    bodyFont: goodDisplayFonts[bodyIndex]
   }
 }
 
