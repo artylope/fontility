@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dices, Plus } from 'lucide-react'
+import { Dices, Plus, Lock } from 'lucide-react'
 import { useFontPairStore } from '@/lib/store'
 import { loadGoogleFont, getFontWeights, fetchGoogleFonts, GoogleFont } from '@/lib/google-fonts'
 import { InteractiveText } from './interactive-text'
+import { InlineFontPopover } from './inline-font-popover'
 
 // Helper function to get appropriate fallback font based on category
 function getFontFallback(category: string): string {
@@ -32,7 +33,7 @@ const PREVIEW_HEADING = "Great typography guides the reader's eye"
 const PREVIEW_BODY = "Customize responsive typography systems for your fonts with meticulously designed editors for line height and letter spacing across font sizes and breakpoints."
 
 export function PreviewArea() {
-  const { fontPairs, activePairId, setActivePair, updateFontPair, addFontPair } = useFontPairStore()
+  const { fontPairs, activePairId, setActivePair, updateFontPair, addFontPair, deleteFontPair, fontLock, canAccessFontLocking } = useFontPairStore()
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const [forceUpdate, setForceUpdate] = useState(0)
   const [loadingFonts, setLoadingFonts] = useState<Set<string>>(new Set())
@@ -40,6 +41,10 @@ export function PreviewArea() {
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
   const [editingPairId, setEditingPairId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+
+  // Define lock states early so they can be used in useEffect
+  const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
+  const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
 
   useEffect(() => {
     fetchGoogleFonts().then(setAllFonts)
@@ -95,7 +100,6 @@ export function PreviewArea() {
 
   // Load fonts when fontPairs changes, but only for changed pairs
   useEffect(() => {
-
     const prevPairs = prevFontPairsRef.current
     const changedPairs = fontPairs.filter((pair, index) => {
       const prevPair = prevPairs[index]
@@ -106,12 +110,15 @@ export function PreviewArea() {
         prevPair.bodyFont.weight !== pair.bodyFont.weight
     })
 
-    // Only load fonts for changed pairs
+    // Only load fonts for actually changed pairs (not global font changes)
     changedPairs.forEach(pair => {
-      if (pair.headingFont.family) {
-        const fontKey = `${pair.headingFont.family}-${pair.headingFont.weight}`
+      const effectiveHeadingFont = getEffectiveHeadingFont(pair)
+      const effectiveBodyFont = getEffectiveBodyFont(pair)
+      
+      if (effectiveHeadingFont.family) {
+        const fontKey = `${effectiveHeadingFont.family}-${effectiveHeadingFont.weight}`
         setLoadingFonts(prev => new Set(prev).add(fontKey))
-        loadGoogleFont(pair.headingFont.family, [pair.headingFont.weight])
+        loadGoogleFont(effectiveHeadingFont.family, [effectiveHeadingFont.weight])
 
         // Check if font is loaded after a delay
         setTimeout(() => {
@@ -122,10 +129,10 @@ export function PreviewArea() {
           })
         }, 1000)
       }
-      if (pair.bodyFont.family) {
-        const fontKey = `${pair.bodyFont.family}-${pair.bodyFont.weight}`
+      if (effectiveBodyFont.family) {
+        const fontKey = `${effectiveBodyFont.family}-${effectiveBodyFont.weight}`
         setLoadingFonts(prev => new Set(prev).add(fontKey))
-        loadGoogleFont(pair.bodyFont.family, [pair.bodyFont.weight])
+        loadGoogleFont(effectiveBodyFont.family, [effectiveBodyFont.weight])
 
         // Check if font is loaded after a delay
         setTimeout(() => {
@@ -143,6 +150,21 @@ export function PreviewArea() {
     // Force a re-render to ensure fonts are applied
     setForceUpdate(prev => prev + 1)
   }, [fontPairs])
+
+  // Effect for handling global font lock changes
+  useEffect(() => {
+    // Load global fonts when they are set
+    if (isHeadingLocked && fontLock.globalHeadingFont) {
+      loadGoogleFont(fontLock.globalHeadingFont.family, [fontLock.globalHeadingFont.weight])
+    }
+
+    if (isBodyLocked && fontLock.globalBodyFont) {
+      loadGoogleFont(fontLock.globalBodyFont.family, [fontLock.globalBodyFont.weight])
+    }
+
+    // Force re-render to apply global font overrides to all cards
+    setForceUpdate(prev => prev + 1)
+  }, [fontLock.enabled, fontLock.lockType, fontLock.globalHeadingFont, fontLock.globalBodyFont])
 
   useEffect(() => {
     if (activePairId && cardRefs.current[activePairId]) {
@@ -179,14 +201,63 @@ export function PreviewArea() {
     }
   }
 
+  const handleHeadingFontChange = (pairId: string, family: string, weight: string, category?: string, isCustom?: boolean) => {
+    updateFontPair(pairId, {
+      headingFont: { family, weight, category, lineHeight: 1.2, letterSpacing: -0.03, isCustom }
+    })
+  }
+
+  const handleBodyFontChange = (pairId: string, family: string, weight: string, category?: string, isCustom?: boolean) => {
+    updateFontPair(pairId, {
+      bodyFont: { family, weight, category, lineHeight: 1.6, letterSpacing: 0, isCustom }
+    })
+  }
+
+  // Helper functions to get the effective font (global override or pair font)
+  // Using useMemo to ensure proper reactivity to fontLock changes
+  const getEffectiveHeadingFont = useMemo(() => {
+    return (pair: typeof fontPairs[0]) => {
+      if (isHeadingLocked && fontLock.globalHeadingFont) {
+        return {
+          family: fontLock.globalHeadingFont.family,
+          weight: fontLock.globalHeadingFont.weight,
+          category: fontLock.globalHeadingFont.category || 'sans-serif',
+          lineHeight: 1.2,
+          letterSpacing: -0.03,
+          isCustom: fontLock.globalHeadingFont.isCustom
+        }
+      }
+      return pair.headingFont
+    }
+  }, [isHeadingLocked, fontLock.globalHeadingFont])
+
+  const getEffectiveBodyFont = useMemo(() => {
+    return (pair: typeof fontPairs[0]) => {
+      if (isBodyLocked && fontLock.globalBodyFont) {
+        return {
+          family: fontLock.globalBodyFont.family,
+          weight: fontLock.globalBodyFont.weight,
+          category: fontLock.globalBodyFont.category || 'sans-serif',
+          lineHeight: 1.6,
+          letterSpacing: 0,
+          isCustom: fontLock.globalBodyFont.isCustom
+        }
+      }
+      return pair.bodyFont
+    }
+  }, [isBodyLocked, fontLock.globalBodyFont])
+
   return (
     <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
       <div className="p-6 w-full" style={{ pointerEvents: 'auto' }}>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
-          {fontPairs.map((pair) => (
-            <Card
+          {fontPairs.map((pair) => {
+            const effectiveHeadingFont = getEffectiveHeadingFont(pair)
+            const effectiveBodyFont = getEffectiveBodyFont(pair)
+            
+            return (<Card
               key={pair.id}
               ref={(el) => {
                 cardRefs.current[pair.id] = el
@@ -244,7 +315,7 @@ export function PreviewArea() {
                 {/* Display text that fills available space */}
                 <div className="flex-1 flex flex-col">
 
-                  {loadingFonts.has(`${pair.headingFont.family}-${pair.headingFont.weight}`) ? (
+                  {loadingFonts.has(`${effectiveHeadingFont.family}-${effectiveHeadingFont.weight}`) ? (
                     <div className="space-y-2 w-full">
                       <Skeleton className="h-[3em] w-full" />
                       <Skeleton className="h-[3em] w-4/5" />
@@ -253,20 +324,20 @@ export function PreviewArea() {
                     <InteractiveText
                       pairId={pair.id}
                       textType="heading"
-                      key={`heading-${pair.id}-${pair.headingFont.family}-${pair.headingFont.weight}-${forceUpdate}`}
+                      key={`heading-${pair.id}-${effectiveHeadingFont.family}-${effectiveHeadingFont.weight}-${forceUpdate}`}
                       className="text-[2.3em] text-foreground text-balance"
                       style={{
-                        fontFamily: `"${pair.headingFont.family}", ${getFontFallback(pair.headingFont.category || 'sans-serif')}`,
-                        fontWeight: pair.headingFont.weight,
-                        lineHeight: pair.headingFont.lineHeight,
-                        letterSpacing: `${pair.headingFont.letterSpacing}px`
+                        fontFamily: `"${effectiveHeadingFont.family}", ${getFontFallback(effectiveHeadingFont.category || 'sans-serif')}`,
+                        fontWeight: effectiveHeadingFont.weight,
+                        lineHeight: effectiveHeadingFont.lineHeight,
+                        letterSpacing: `${effectiveHeadingFont.letterSpacing}px`
                       }}
                     >
                       {PREVIEW_HEADING}
                     </InteractiveText>
                   )}
 
-                  {loadingFonts.has(`${pair.bodyFont.family}-${pair.bodyFont.weight}`) ? (
+                  {loadingFonts.has(`${effectiveBodyFont.family}-${effectiveBodyFont.weight}`) ? (
                     <div className="space-y-2 mt-4 leading-relaxed w-full">
                       <Skeleton className="h-[1.5em] w-full" />
                       <Skeleton className="h-[1.5em] w-full" />
@@ -277,13 +348,13 @@ export function PreviewArea() {
                     <InteractiveText
                       pairId={pair.id}
                       textType="body"
-                      key={`body-${pair.id}-${pair.bodyFont.family}-${pair.bodyFont.weight}-${forceUpdate}`}
+                      key={`body-${pair.id}-${effectiveBodyFont.family}-${effectiveBodyFont.weight}-${forceUpdate}`}
                       className="text-muted-foreground mt-4 pb-4 text-sm"
                       style={{
-                        fontFamily: `"${pair.bodyFont.family}", ${getFontFallback(pair.bodyFont.category || 'sans-serif')}`,
-                        fontWeight: pair.bodyFont.weight,
-                        lineHeight: pair.bodyFont.lineHeight,
-                        letterSpacing: `${pair.bodyFont.letterSpacing}px`
+                        fontFamily: `"${effectiveBodyFont.family}", ${getFontFallback(effectiveBodyFont.category || 'sans-serif')}`,
+                        fontWeight: effectiveBodyFont.weight,
+                        lineHeight: effectiveBodyFont.lineHeight,
+                        letterSpacing: `${effectiveBodyFont.letterSpacing}px`
                       }}
                     >
                       {PREVIEW_BODY}
@@ -291,18 +362,45 @@ export function PreviewArea() {
                   )}
                 </div>
 
-                {/* Metadata that sits at the bottom */}
-                <div className="pt-4 border-t border-border text-xs text-muted-foreground space-y-1 mt-auto">
-                  <div>
-                    <span className="font-medium">Heading:</span> {pair.headingFont.family} {pair.headingFont.weight}
-                  </div>
-                  <div>
-                    <span className="font-medium">Body:</span> {pair.bodyFont.family} {pair.bodyFont.weight}
-                  </div>
+                {/* Single inline editor for both fonts - exactly like sidebar card */}
+                <div className="pt-4 border-t border-border text-xs text-muted-foreground mt-auto">
+                  <InlineFontPopover
+                    pairId={pair.id}
+                    pair={pair}
+                    isHeadingLocked={isHeadingLocked}
+                    isBodyLocked={isBodyLocked}
+                    onHeadingFontChange={(family, weight, category, isCustom) => 
+                      handleHeadingFontChange(pair.id, family, weight, category, isCustom)
+                    }
+                    onBodyFontChange={(family, weight, category, isCustom) => 
+                      handleBodyFontChange(pair.id, family, weight, category, isCustom)
+                    }
+                    onDeletePair={deleteFontPair}
+                    onRandomizePair={randomizeFontPair}
+                    fontPairsCount={fontPairs.length}
+                    trigger={
+                      <div className="space-y-1 hover:bg-muted/30 p-2 -m-2 rounded transition-colors">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">Heading:</span> 
+                          <span className="flex-1 ml-2">{effectiveHeadingFont.family} {effectiveHeadingFont.weight}</span>
+                          {isHeadingLocked && <Lock className="w-3 h-3 ml-2 opacity-60" />}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">Body:</span> 
+                          <span className="flex-1 ml-2">{effectiveBodyFont.family} {effectiveBodyFont.weight}</span>
+                          {isBodyLocked && <Lock className="w-3 h-3 ml-2 opacity-60" />}
+                        </div>
+                        <div className="text-xs opacity-50 text-center mt-2">
+                          Click to edit fonts
+                        </div>
+                      </div>
+                    }
+                  />
                 </div>
               </div>
             </Card>
-          ))}
+            )
+          })}
 
           {/* Add New Pair Card */}
           <Card
