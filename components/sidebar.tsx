@@ -1,243 +1,258 @@
 'use client'
 
-import { Plus, Trash2, Dices, Lock } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
-import { FontSelector } from './font-selector'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useFontPairStore } from '@/lib/store'
-import { useState, useEffect, useRef } from 'react'
-import { GoogleFont, fetchGoogleFonts, getFontWeights, isGoodForHeadings } from '@/lib/google-fonts'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button'
+import { useFontPairStore, FontCategory } from '@/lib/store'
+import { GoogleFont, fetchGoogleFonts } from '@/lib/google-fonts'
 
 export function Sidebar() {
-  const { fontPairs, activePairId, fontLock, addFontPair, deleteFontPair, updateFontPair, setActivePair, canAccessFontLocking } = useFontPairStore()
+  const { 
+    globalText, 
+    headingFontFilters, 
+    bodyFontFilters,
+    setGlobalText,
+    setHeadingFontFilters,
+    setBodyFontFilters
+  } = useFontPairStore()
+  
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
-  const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   useEffect(() => {
     fetchGoogleFonts().then(setAllFonts)
   }, [])
 
-  useEffect(() => {
-    if (activePairId && cardRefs.current[activePairId]) {
-      cardRefs.current[activePairId]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      })
-    }
-  }, [activePairId])
-
-  const handleNameChange = (id: string, name: string) => {
-    updateFontPair(id, { name })
+  const getCategoryCount = (category: FontCategory): number => {
+    return allFonts.filter(font => font.category === category).length
   }
 
-  const handleHeadingFontChange = (id: string, family: string, weight: string, category?: string, isCustom?: boolean) => {
-    updateFontPair(id, {
-      headingFont: { family, weight, category, lineHeight: 1.25, letterSpacing: -0.025, isCustom }
-    })
+  const getWeightCount = (weight: string): number => {
+    return allFonts.filter(font => 
+      font.variants.some(variant => 
+        variant === weight || (variant === 'regular' && weight === '400')
+      )
+    ).length
   }
 
-  const handleBodyFontChange = (id: string, family: string, weight: string, category?: string, isCustom?: boolean) => {
-    updateFontPair(id, {
-      bodyFont: { family, weight, category, lineHeight: 1.625, letterSpacing: 0, isCustom }
-    })
-  }
-
-  const randomizeFontPair = (id: string) => {
-    if (allFonts.length === 0) return
-
-    const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
-    const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
-
-    let headingFont, bodyFont, randomHeadingWeight, randomBodyWeight
-
-    if (isHeadingLocked && fontLock.globalHeadingFont) {
-      // Use locked heading font
-      headingFont = fontLock.globalHeadingFont.isCustom ? 
-        { family: fontLock.globalHeadingFont.family, category: 'custom' } :
-        allFonts.find(f => f.family === fontLock.globalHeadingFont!.family) || allFonts[0]
-      randomHeadingWeight = fontLock.globalHeadingFont.weight
+  const handleCategoryToggle = (category: FontCategory, isHeading: boolean) => {
+    const currentFilters = isHeading ? headingFontFilters : bodyFontFilters
+    const newCategories = currentFilters.categories.includes(category)
+      ? currentFilters.categories.filter(c => c !== category)
+      : [...currentFilters.categories, category]
+    
+    if (isHeading) {
+      setHeadingFontFilters({ categories: newCategories })
     } else {
-      // Get random heading font - filter for fonts suitable for headings
-      const suitableHeadingFonts = allFonts.filter(isGoodForHeadings)
-      const randomIndex1 = Math.floor(Math.random() * Math.min(suitableHeadingFonts.length, 100))
-      headingFont = suitableHeadingFonts[randomIndex1] || allFonts[0] // fallback to any font if none suitable
-      const headingWeights = getFontWeights(headingFont)
-      const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= 400 && parseInt(weight) <= 900)
-      const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights
-      randomHeadingWeight = finalHeadingWeights[Math.floor(Math.random() * finalHeadingWeights.length)]
+      setBodyFontFilters({ categories: newCategories })
     }
-
-    if (isBodyLocked && fontLock.globalBodyFont) {
-      // Use locked body font
-      bodyFont = fontLock.globalBodyFont.isCustom ?
-        { family: fontLock.globalBodyFont.family, category: 'custom' } :
-        allFonts.find(f => f.family === fontLock.globalBodyFont!.family) || allFonts[0]
-      randomBodyWeight = fontLock.globalBodyFont.weight
-    } else {
-      // Get random body font
-      const randomIndex2 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
-      bodyFont = allFonts[randomIndex2]
-      const bodyWeights = getFontWeights(bodyFont)
-      const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
-      const finalBodyWeights = bodyWeightOptions.length > 0 ? bodyWeightOptions : bodyWeights.filter(weight => parseInt(weight) <= 400)
-      randomBodyWeight = finalBodyWeights[Math.floor(Math.random() * finalBodyWeights.length)]
-    }
-
-    // Update the font pair
-    updateFontPair(id, {
-      headingFont: {
-        family: headingFont.family,
-        weight: randomHeadingWeight,
-        category: headingFont.category,
-        lineHeight: 1.25,
-        letterSpacing: -0.025,
-        isCustom: isHeadingLocked ? fontLock.globalHeadingFont?.isCustom : false
-      },
-      bodyFont: {
-        family: bodyFont.family,
-        weight: randomBodyWeight,
-        category: bodyFont.category,
-        lineHeight: 1.625,
-        letterSpacing: 0,
-        isCustom: isBodyLocked ? fontLock.globalBodyFont?.isCustom : false
-      }
-    })
   }
 
-  const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
-  const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
+  const handleWeightToggle = (weight: string, isHeading: boolean) => {
+    const currentFilters = isHeading ? headingFontFilters : bodyFontFilters
+    const newWeights = currentFilters.weights.includes(weight)
+      ? currentFilters.weights.filter(w => w !== weight)
+      : [...currentFilters.weights, weight]
+    
+    if (isHeading) {
+      setHeadingFontFilters({ weights: newWeights })
+    } else {
+      setBodyFontFilters({ weights: newWeights })
+    }
+  }
+
+  const handleSelectAllCategories = (isHeading: boolean) => {
+    const currentFilters = isHeading ? headingFontFilters : bodyFontFilters
+    const allSelected = categoryOrder.every(category => currentFilters.categories.includes(category))
+    
+    if (isHeading) {
+      setHeadingFontFilters({ categories: allSelected ? [] : categoryOrder })
+    } else {
+      setBodyFontFilters({ categories: allSelected ? [] : categoryOrder })
+    }
+  }
+
+  const handleSelectAllWeights = (isHeading: boolean) => {
+    const currentFilters = isHeading ? headingFontFilters : bodyFontFilters
+    const allSelected = weightOrder.every(weight => currentFilters.weights.includes(weight))
+    
+    if (isHeading) {
+      setHeadingFontFilters({ weights: allSelected ? [] : weightOrder })
+    } else {
+      setBodyFontFilters({ weights: allSelected ? [] : weightOrder })
+    }
+  }
+
+  const categoryOrder: FontCategory[] = ['sans-serif', 'serif', 'monospace', 'handwriting', 'display']
+  const weightOrder = ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+
+  const isAllCategoriesSelected = (isHeading: boolean) => {
+    const filters = isHeading ? headingFontFilters : bodyFontFilters
+    return categoryOrder.every(category => filters.categories.includes(category))
+  }
+
+  const isAllWeightsSelected = (isHeading: boolean) => {
+    const filters = isHeading ? headingFontFilters : bodyFontFilters
+    return weightOrder.every(weight => filters.weights.includes(weight))
+  }
 
   return (
     <div className="w-88 border-r border-border flex flex-col h-full">
-      {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
-        <div className="space-y-4 py-4 px-4">
-          {fontPairs.map((pair) => (
-            <Card
-              key={pair.id}
-              ref={(el) => {
-                cardRefs.current[pair.id] = el
-              }}
-              className={`space-y-1 p-3 pb-4 border-none shadow-none cursor-pointer transition-all outline-2 outline-offset-2 ${activePairId === pair.id
-                ? 'bg-card outline-foreground shadow-lg'
-                : 'outline-transparent hover:outline-border'
-                }`}
-              onClick={() => setActivePair(pair.id)}
-            >
-              <div className="flex items-center justify-between">
-                <Input
-                  value={pair.name}
-                  onChange={(e) => {
-                    e.stopPropagation()
-                    handleNameChange(pair.id, e.target.value)
-                  }}
-                  className="!text-xs text-muted-foreground uppercase tracking-wider font-semibold border-none px-0 h-auto shadow-none focus-visible:ring-0"
-                />
+        <div className="space-y-6 py-4 px-4">
+          {/* Global Text Settings */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-foreground">Text Content</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="heading-text" className="text-sm font-medium">Heading Text</Label>
+              <Input
+                id="heading-text"
+                value={globalText.headingText}
+                onChange={(e) => setGlobalText(e.target.value, globalText.bodyText)}
+                className="text-sm"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="body-text" className="text-sm font-medium">Body Text</Label>
+              <Textarea
+                id="body-text"
+                value={globalText.bodyText}
+                onChange={(e) => setGlobalText(globalText.headingText, e.target.value)}
+                className="text-sm min-h-[80px] resize-none"
+              />
+            </div>
+          </div>
 
-                <div className="flex items-center gap-1">
+          {/* Heading Font Filters */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-foreground">Heading Font Filters</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">Categories</Label>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      randomizeFontPair(pair.id)
-                    }}
-                    className="h-6 w-6 p-0 hover:bg-blue-100 hover:text-blue-600"
-                    title="Randomize font pairing"
-                    disabled={allFonts.length === 0}
+                    onClick={() => handleSelectAllCategories(true)}
+                    className="h-6 px-2 text-xs"
                   >
-                    <Dices className="w-3 h-3" />
+                    {isAllCategoriesSelected(true) ? 'Deselect All' : 'Select All'}
                   </Button>
-                  {fontPairs.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        deleteFontPair(pair.id)
-                      }}
-                      className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  )}
+                </div>
+                <div className="flex flex-col space-y-2">
+                  {categoryOrder.map(category => (
+                    <div key={`heading-${category}`} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`heading-${category}`}
+                        checked={headingFontFilters.categories.includes(category)}
+                        onCheckedChange={() => handleCategoryToggle(category, true)}
+                      />
+                      <Label htmlFor={`heading-${category}`} className="text-sm cursor-pointer">
+                        {category} ({getCategoryCount(category)})
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <div className="space-y-4">
-                {!isHeadingLocked && (
-                  <div>
-                    <div className="text-xs font-medium text-foreground mb-2">Heading</div>
-                    <FontSelector
-                      label=""
-                      fontFamily={pair.headingFont.family}
-                      fontWeight={pair.headingFont.weight}
-                      onFontChange={(family, weight, category) => handleHeadingFontChange(pair.id, family, weight, category)}
-                    />
-                  </div>
-                )}
-
-                {isHeadingLocked && (
-                  <div>
-                    <div className="flex items-center gap-2 text-xs font-medium text-foreground mb-2">
-                      <span>Heading</span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Lock className="w-3 h-3 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Heading font is globally locked. Unlock in settings.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">Weights</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSelectAllWeights(true)}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {isAllWeightsSelected(true) ? 'Deselect All' : 'Select All'}
+                  </Button>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  {weightOrder.map(weight => (
+                    <div key={`heading-${weight}`} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`heading-${weight}`}
+                        checked={headingFontFilters.weights.includes(weight)}
+                        onCheckedChange={() => handleWeightToggle(weight, true)}
+                      />
+                      <Label htmlFor={`heading-${weight}`} className="text-sm cursor-pointer">
+                        {weight} ({getWeightCount(weight)})
+                      </Label>
                     </div>
-                  </div>
-                )}
-
-                {!isBodyLocked && (
-                  <div>
-                    <div className="text-xs font-medium text-foreground mb-2">Body</div>
-                    <FontSelector
-                      label=""
-                      fontFamily={pair.bodyFont.family}
-                      fontWeight={pair.bodyFont.weight}
-                      onFontChange={(family, weight, category) => handleBodyFontChange(pair.id, family, weight, category)}
-                    />
-                  </div>
-                )}
-
-                {isBodyLocked && (
-                  <div>
-                    <div className="flex items-center gap-2 text-xs font-medium text-foreground mb-2">
-                      <span>Body</span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Lock className="w-3 h-3 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Body font is globally locked. Unlock in settings.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
-            </Card>
-          ))}
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* Sticky bottom section with Add Pair button */}
-      <div className="border-t border-border p-4 bg-background">
-        <Button onClick={() => addFontPair(undefined, allFonts)} size="sm" className="w-full gap-2">
-          <Plus className="w-4 h-4" />
-          Add Pair
-        </Button>
+          {/* Body Font Filters */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-foreground">Body Font Filters</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">Categories</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSelectAllCategories(false)}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {isAllCategoriesSelected(false) ? 'Deselect All' : 'Select All'}
+                  </Button>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  {categoryOrder.map(category => (
+                    <div key={`body-${category}`} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`body-${category}`}
+                        checked={bodyFontFilters.categories.includes(category)}
+                        onCheckedChange={() => handleCategoryToggle(category, false)}
+                      />
+                      <Label htmlFor={`body-${category}`} className="text-sm cursor-pointer">
+                        {category} ({getCategoryCount(category)})
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">Weights</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSelectAllWeights(false)}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {isAllWeightsSelected(false) ? 'Deselect All' : 'Select All'}
+                  </Button>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  {weightOrder.map(weight => (
+                    <div key={`body-${weight}`} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`body-${weight}`}
+                        checked={bodyFontFilters.weights.includes(weight)}
+                        onCheckedChange={() => handleWeightToggle(weight, false)}
+                      />
+                      <Label htmlFor={`body-${weight}`} className="text-sm cursor-pointer">
+                        {weight} ({getWeightCount(weight)})
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -14,35 +14,36 @@ const GOOGLE_FONTS_API_URL = 'https://www.googleapis.com/webfonts/v1/webfonts'
 const FONT_BLACKLIST = [
   // Icon fonts
   'Material Icons',
-  'Material Icons Outlined', 
+  'Material Icons Outlined',
   'Material Icons Round',
   'Material Icons Sharp',
   'Material Icons Two Tone',
   'Material Symbols Outlined',
   'Material Symbols Rounded',
   'Material Symbols Sharp',
+  'Flow Circular',
   // Other icon/symbol fonts
   'Noto Color Emoji',
   'Noto Emoji',
   // Fonts that are problematic for body text
   'Creepster',
-  'Butcherman', 
+  'Butcherman',
   'Griffy',
   'Jolly Lodger',
 ]
 
 export function isGoodForDisplay(font: GoogleFont): boolean {
   const family = font.family.toLowerCase()
-  
+
   // Check blacklist
   if (FONT_BLACKLIST.some(blacklisted => family.includes(blacklisted.toLowerCase()))) {
     return false
   }
-  
+
   // Comprehensive icon font detection - combines both previous filters
   const iconBlacklist = [
     'icon',
-    'icons', 
+    'icons',
     'emoji',
     'symbol',
     'symbols',
@@ -58,12 +59,12 @@ export function isGoodForDisplay(font: GoogleFont): boolean {
     'icomoon',
     'feather'
   ]
-  
+
   // Check if font name contains any icon-related terms
   if (iconBlacklist.some(term => family.includes(term))) {
     return false
   }
-  
+
   return true
 }
 
@@ -74,32 +75,32 @@ function isGoodForRandomSelection(font: GoogleFont): boolean {
 
 export function isGoodForHeadings(font: GoogleFont): boolean {
   const family = font.family.toLowerCase()
-  
+
   // First check general suitability
   if (!isGoodForDisplay(font)) {
     return false
   }
-  
+
   // Check category - exclude display fonts that are likely decorative/icon fonts
   if (font.category === 'display') {
     // Allow some well-known display fonts that work for headings
     const allowedDisplayFonts = [
       'playfair display',
       'merriweather',
-      'lora', 
+      'lora',
       'crimson text',
       'pt serif',
       'georgia',
       'times',
       'baskerville'
     ]
-    
+
     if (!allowedDisplayFonts.some(allowed => family.includes(allowed))) {
       // Be more selective with display fonts for headings
       return false
     }
   }
-  
+
   return true
 }
 
@@ -123,6 +124,15 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
 
     const data: GoogleFontsResponse = await response.json()
     console.log(`Loaded ${data.items.length} Google Fonts`)
+    console.log('Complete Google Fonts API response:', JSON.stringify(data, null, 2))
+    console.log('Sample font data (first 3 items):', JSON.stringify(data.items.slice(0, 3), null, 2))
+
+    // Log category breakdown
+    const categories = data.items.reduce((acc, font) => {
+      acc[font.category] = (acc[font.category] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    console.log('Font categories available:', categories)
     return data.items
   } catch (error) {
     console.error('Error fetching Google Fonts:', error)
@@ -133,18 +143,18 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
 export function getRandomFontsForPair(allFonts: GoogleFont[]): { headingFont: GoogleFont, bodyFont: GoogleFont } | null {
   // Filter fonts suitable for display - use same filtering for both heading and body
   const goodDisplayFonts = allFonts.filter(isGoodForDisplay)
-  
+
   if (goodDisplayFonts.length === 0) {
     console.warn(`Not enough suitable fonts for randomization. Display fonts: ${goodDisplayFonts.length}`)
     return null
   }
-  
+
   console.log(`Selecting from ${goodDisplayFonts.length} display fonts for both heading and body`)
-  
+
   // Pick random fonts from the same filtered pool
   const headingIndex = Math.floor(Math.random() * goodDisplayFonts.length)
   const bodyIndex = Math.floor(Math.random() * goodDisplayFonts.length)
-  
+
   return {
     headingFont: goodDisplayFonts[headingIndex],
     bodyFont: goodDisplayFonts[bodyIndex]
@@ -153,7 +163,7 @@ export function getRandomFontsForPair(allFonts: GoogleFont[]): { headingFont: Go
 
 export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) {
   const fontId = `google-font-${fontFamily.replace(/\s+/g, '-').toLowerCase()}`
-  
+
   // Remove existing font link to reload with new weights
   const existingLink = document.getElementById(fontId)
   if (existingLink) {
@@ -163,7 +173,7 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
   // Limit weights to avoid URL being too long - Google Fonts has limits
   const limitedWeights = weights.slice(0, 5) // Max 5 weights
   const weightQuery = limitedWeights.join(';')
-  
+
   // Use the newer Google Fonts API format
   const encodedFontFamily = fontFamily.replace(/\s+/g, '+')
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodedFontFamily}:wght@${weightQuery}&display=swap`
@@ -176,7 +186,7 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
         console.warn('Font not available:', fontFamily, 'Status:', response.status)
         return
       }
-      
+
       // Font exists, create link element
       const link = document.createElement('link')
       link.id = fontId
@@ -188,7 +198,7 @@ export function loadGoogleFont(fontFamily: string, weights: string[] = ['400']) 
       link.onerror = (event) => {
         console.warn('Failed to load font CSS (will fallback):', fontFamily)
       }
-      
+
       link.onload = () => {
         // Try to load the actual font
         if ('fonts' in document) {
@@ -226,14 +236,14 @@ export async function validateGoogleFont(fontFamily: string): Promise<boolean> {
   try {
     const encodedFontFamily = fontFamily.replace(/\s+/g, '+')
     const testUrl = `https://fonts.googleapis.com/css2?family=${encodedFontFamily}:wght@400&display=swap`
-    
+
     const response = await fetch(testUrl, { method: 'HEAD' })
     const isValid = response.ok
-    
+
     if (!isValid) {
       console.warn('Font not available on Google Fonts:', fontFamily, 'Status:', response.status)
     }
-    
+
     return isValid
   } catch (error) {
     console.warn('Error validating font (network issue):', fontFamily, error instanceof Error ? error.message : String(error))

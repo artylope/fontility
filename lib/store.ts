@@ -5,6 +5,18 @@ import { getRandomFontsForPair, GoogleFont } from './google-fonts'
 
 export type FontLockType = 'headings' | 'body'
 
+export type FontCategory = 'sans-serif' | 'serif' | 'monospace' | 'handwriting' | 'display'
+
+export interface FontFilters {
+  categories: FontCategory[]
+  weights: string[]
+}
+
+export interface GlobalTextSettings {
+  headingText: string
+  bodyText: string
+}
+
 export interface CustomFont {
   id: string
   family: string
@@ -71,6 +83,9 @@ interface FontPairStore {
   fontLock: FontLockSettings
   userTier: UserTier
   customFonts: CustomFont[]
+  globalText: GlobalTextSettings
+  headingFontFilters: FontFilters
+  bodyFontFilters: FontFilters
   addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: GoogleFont[]) => void
   deleteFontPair: (id: string) => void
   updateFontPair: (id: string, updates: Partial<Omit<FontPair, 'id'>>) => void
@@ -84,6 +99,9 @@ interface FontPairStore {
   addCustomFont: (font: CustomFont) => void
   removeCustomFont: (fontId: string) => void
   getCustomFont: (family: string) => CustomFont | undefined
+  setGlobalText: (headingText: string, bodyText: string) => void
+  setHeadingFontFilters: (filters: Partial<FontFilters>) => void
+  setBodyFontFilters: (filters: Partial<FontFilters>) => void
 }
 
 const defaultFontPairs = [
@@ -113,14 +131,29 @@ export const useFontPairStore = create<FontPairStore>()(
       fontPairs: defaultFontPairs,
       activePairId: '1',
       customFonts: [],
-      
+
+      globalText: {
+        headingText: "Great typography guides the reader's eye.",
+        bodyText: 'Customize responsive typography systems for your fonts with meticulously designed editors for line height and letter spacing across font sizes and breakpoints.'
+      },
+
+      headingFontFilters: {
+        categories: ['sans-serif', 'serif', 'monospace', 'handwriting', 'display'],
+        weights: ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+      },
+
+      bodyFontFilters: {
+        categories: ['sans-serif', 'serif', 'monospace', 'handwriting', 'display'],
+        weights: ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+      },
+
       fontLock: {
         enabled: false,
         lockType: 'headings',
         globalHeadingFont: undefined,
         globalBodyFont: undefined,
       },
-      
+
       userTier: {
         tier: 'free',
         features: {
@@ -131,17 +164,17 @@ export const useFontPairStore = create<FontPairStore>()(
       addFontPair: (customPair?: Partial<Omit<FontPair, 'id' | 'name'>>, availableFonts?: GoogleFont[]) => {
         const { fontPairs, fontLock, userTier } = get()
         const newId = nanoid()
-        
+
         // Check if font locking is enabled and accessible
         const canAccessLocking = userTier.features.fontLocking
         const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessLocking
         const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessLocking
-        
+
         // If no custom pair provided, generate random fonts
         let finalPair = customPair
         if (!customPair && availableFonts && availableFonts.length > 0) {
           const randomFonts = getRandomFontsForPair(availableFonts)
-          
+
           if (randomFonts) {
             finalPair = {
               headingFont: {
@@ -153,7 +186,7 @@ export const useFontPairStore = create<FontPairStore>()(
               },
               bodyFont: {
                 family: randomFonts.bodyFont.family,
-                weight: '400', 
+                weight: '400',
                 category: randomFonts.bodyFont.category || 'sans-serif',
                 lineHeight: 1.625,
                 letterSpacing: 0
@@ -161,7 +194,7 @@ export const useFontPairStore = create<FontPairStore>()(
             }
           }
         }
-        
+
         // Fallback to Inter if no custom pair and no fonts available
         const defaultPair = {
           headingFont: {
@@ -277,7 +310,7 @@ export const useFontPairStore = create<FontPairStore>()(
         } : {
           fontLocking: true,
         }
-        
+
         set({ userTier: { tier, features } })
       },
 
@@ -295,13 +328,13 @@ export const useFontPairStore = create<FontPairStore>()(
       removeCustomFont: (fontId: string) => {
         const { customFonts } = get()
         const fontToRemove = customFonts.find(f => f.id === fontId)
-        
+
         if (fontToRemove) {
           // Cleanup object URLs
           fontToRemove.variants.forEach(variant => {
             URL.revokeObjectURL(variant.url)
           })
-          
+
           set(state => ({
             customFonts: state.customFonts.filter(f => f.id !== fontId)
           }))
@@ -311,6 +344,24 @@ export const useFontPairStore = create<FontPairStore>()(
       getCustomFont: (family: string) => {
         const { customFonts } = get()
         return customFonts.find(f => f.family === family)
+      },
+
+      setGlobalText: (headingText: string, bodyText: string) => {
+        set(state => ({
+          globalText: { headingText, bodyText }
+        }))
+      },
+
+      setHeadingFontFilters: (filters: Partial<FontFilters>) => {
+        set(state => ({
+          headingFontFilters: { ...state.headingFontFilters, ...filters }
+        }))
+      },
+
+      setBodyFontFilters: (filters: Partial<FontFilters>) => {
+        set(state => ({
+          bodyFontFilters: { ...state.bodyFontFilters, ...filters }
+        }))
       },
     }),
     {

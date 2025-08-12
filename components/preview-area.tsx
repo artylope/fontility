@@ -29,11 +29,8 @@ function getFontFallback(category: string): string {
   }
 }
 
-const PREVIEW_HEADING = "Great typography guides the reader's eye"
-const PREVIEW_BODY = "Customize responsive typography systems for your fonts with meticulously designed editors for line height and letter spacing across font sizes and breakpoints."
-
 export function PreviewArea() {
-  const { fontPairs, activePairId, setActivePair, updateFontPair, addFontPair, deleteFontPair, fontLock, canAccessFontLocking } = useFontPairStore()
+  const { fontPairs, activePairId, setActivePair, updateFontPair, addFontPair, deleteFontPair, fontLock, canAccessFontLocking, globalText, headingFontFilters, bodyFontFilters } = useFontPairStore()
   const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const [forceUpdate, setForceUpdate] = useState(0)
   const [loadingFonts, setLoadingFonts] = useState<Set<string>>(new Set())
@@ -50,33 +47,75 @@ export function PreviewArea() {
     fetchGoogleFonts().then(setAllFonts)
   }, [])
 
+  // Create filtered font lists based on current filters
+  const filteredHeadingFonts = useMemo(() => {
+    return allFonts.filter(font => {
+      const matchesCategory = headingFontFilters.categories.includes(font.category as any)
+      const hasMatchingWeight = font.variants.some(variant => {
+        const weight = variant === 'regular' ? '400' : variant
+        return headingFontFilters.weights.includes(weight)
+      })
+      return matchesCategory && hasMatchingWeight
+    })
+  }, [allFonts, headingFontFilters])
+
+  const filteredBodyFonts = useMemo(() => {
+    return allFonts.filter(font => {
+      const matchesCategory = bodyFontFilters.categories.includes(font.category as any)
+      const hasMatchingWeight = font.variants.some(variant => {
+        const weight = variant === 'regular' ? '400' : variant
+        return bodyFontFilters.weights.includes(weight)
+      })
+      return matchesCategory && hasMatchingWeight
+    })
+  }, [allFonts, bodyFontFilters])
+
+  // Auto-update font pairs that don't match current filters
+  useEffect(() => {
+    if (filteredHeadingFonts.length === 0 || filteredBodyFonts.length === 0) return
+
+    fontPairs.forEach(pair => {
+      const headingMatches = headingFontFilters.categories.includes((pair.headingFont.category || 'sans-serif') as any) &&
+        headingFontFilters.weights.includes(pair.headingFont.weight)
+      const bodyMatches = bodyFontFilters.categories.includes((pair.bodyFont.category || 'sans-serif') as any) &&
+        bodyFontFilters.weights.includes(pair.bodyFont.weight)
+      
+      if (!headingMatches || !bodyMatches) {
+        // Auto-randomize pairs that don't match current filters
+        randomizeFontPair(pair.id)
+      }
+    })
+  }, [headingFontFilters, bodyFontFilters, filteredHeadingFonts, filteredBodyFonts])
+
   const randomizeFontPair = (id: string) => {
-    if (allFonts.length === 0) return
+    if (filteredHeadingFonts.length === 0 || filteredBodyFonts.length === 0) return
 
-    // Get two random fonts
-    const randomIndex1 = Math.floor(Math.random() * Math.min(allFonts.length, 100)) // Top 100 fonts for better quality
-    const randomIndex2 = Math.floor(Math.random() * Math.min(allFonts.length, 100))
+    // Get two random fonts from filtered lists
+    const randomIndex1 = Math.floor(Math.random() * filteredHeadingFonts.length)
+    const randomIndex2 = Math.floor(Math.random() * filteredBodyFonts.length)
 
-    const headingFont = allFonts[randomIndex1]
-    const bodyFont = allFonts[randomIndex2]
+    const headingFont = filteredHeadingFonts[randomIndex1]
+    const bodyFont = filteredBodyFonts[randomIndex2]
 
-    // Get available weights for each font
-    const headingWeights = getFontWeights(headingFont)
-    const bodyWeights = getFontWeights(bodyFont)
+    // Get available weights for each font, filtered by current filter settings
+    const headingWeights = getFontWeights(headingFont).filter(weight => headingFontFilters.weights.includes(weight))
+    const bodyWeights = getFontWeights(bodyFont).filter(weight => bodyFontFilters.weights.includes(weight))
 
-    // Filter body weights to be 300-400 range
+    // Filter body weights to be 300-400 range if possible, but respect filter constraints
     const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
     const finalBodyWeights = bodyWeightOptions.length > 0 ? bodyWeightOptions : bodyWeights.filter(weight => parseInt(weight) <= 400)
+    const fallbackBodyWeights = finalBodyWeights.length > 0 ? finalBodyWeights : bodyWeights
 
-    // Filter heading weights to be 400-900 range and always bolder than body
-    const randomBodyWeight = finalBodyWeights[Math.floor(Math.random() * finalBodyWeights.length)]
+    // Filter heading weights to be 400-900 range and always bolder than body if possible
+    const randomBodyWeight = fallbackBodyWeights[Math.floor(Math.random() * fallbackBodyWeights.length)]
     const bodyWeightNum = parseInt(randomBodyWeight)
     const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= Math.max(400, bodyWeightNum + 100) && parseInt(weight) <= 900)
     const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights.filter(weight => parseInt(weight) > bodyWeightNum)
+    const fallbackHeadingWeights = finalHeadingWeights.length > 0 ? finalHeadingWeights : headingWeights
 
-    const randomHeadingWeight = finalHeadingWeights.length > 0
-      ? finalHeadingWeights[Math.floor(Math.random() * finalHeadingWeights.length)]
-      : headingWeights[headingWeights.length - 1] // fallback to boldest available
+    const randomHeadingWeight = fallbackHeadingWeights.length > 0
+      ? fallbackHeadingWeights[Math.floor(Math.random() * fallbackHeadingWeights.length)]
+      : '700' // fallback to 700 if no weights available
 
     // Update the font pair
     updateFontPair(id, {
@@ -306,7 +345,7 @@ export function PreviewArea() {
                     }}
                     className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600 opacity-60 hover:opacity-100 transition-opacity"
                     title="Randomize font pairing"
-                    disabled={allFonts.length === 0}
+                    disabled={filteredHeadingFonts.length === 0 || filteredBodyFonts.length === 0}
                   >
                     <Dices className="w-5 h-5" />
                   </Button>
@@ -333,7 +372,7 @@ export function PreviewArea() {
                         letterSpacing: `${effectiveHeadingFont.letterSpacing}px`
                       }}
                     >
-                      {PREVIEW_HEADING}
+                      {globalText.headingText}
                     </InteractiveText>
                   )}
 
@@ -357,7 +396,7 @@ export function PreviewArea() {
                         letterSpacing: `${effectiveBodyFont.letterSpacing}px`
                       }}
                     >
-                      {PREVIEW_BODY}
+                      {globalText.bodyText}
                     </InteractiveText>
                   )}
                 </div>
@@ -405,7 +444,60 @@ export function PreviewArea() {
           {/* Add New Pair Card */}
           <Card
             className="bg-card min-h-[20rem] p-6 cursor-pointer transition-all outline-2 outline-offset-2 flex flex-col outline-transparent hover:-translate-y-1 hover:shadow-lg border-dashed border-2 border-border hover:border-foreground/50"
-            onClick={() => addFontPair(undefined, allFonts)}
+            onClick={() => {
+              if (filteredHeadingFonts.length === 0 || filteredBodyFonts.length === 0) {
+                // Fallback to all fonts if no filtered fonts available
+                addFontPair(undefined, allFonts)
+                return
+              }
+
+              // Create a new pair using our filtering logic (same as randomizeFontPair)
+              const randomIndex1 = Math.floor(Math.random() * filteredHeadingFonts.length)
+              const randomIndex2 = Math.floor(Math.random() * filteredBodyFonts.length)
+
+              const headingFont = filteredHeadingFonts[randomIndex1]
+              const bodyFont = filteredBodyFonts[randomIndex2]
+
+              // Get available weights for each font, filtered by current filter settings
+              const headingWeights = getFontWeights(headingFont).filter(weight => headingFontFilters.weights.includes(weight))
+              const bodyWeights = getFontWeights(bodyFont).filter(weight => bodyFontFilters.weights.includes(weight))
+
+              // Filter body weights to be 300-400 range if possible, but respect filter constraints
+              const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
+              const finalBodyWeights = bodyWeightOptions.length > 0 ? bodyWeightOptions : bodyWeights.filter(weight => parseInt(weight) <= 400)
+              const fallbackBodyWeights = finalBodyWeights.length > 0 ? finalBodyWeights : bodyWeights
+
+              // Filter heading weights to be 400-900 range and always bolder than body if possible
+              const randomBodyWeight = fallbackBodyWeights[Math.floor(Math.random() * fallbackBodyWeights.length)]
+              const bodyWeightNum = parseInt(randomBodyWeight)
+              const headingWeightOptions = headingWeights.filter(weight => parseInt(weight) >= Math.max(400, bodyWeightNum + 100) && parseInt(weight) <= 900)
+              const finalHeadingWeights = headingWeightOptions.length > 0 ? headingWeightOptions : headingWeights.filter(weight => parseInt(weight) > bodyWeightNum)
+              const fallbackHeadingWeights = finalHeadingWeights.length > 0 ? finalHeadingWeights : headingWeights
+
+              const randomHeadingWeight = fallbackHeadingWeights.length > 0
+                ? fallbackHeadingWeights[Math.floor(Math.random() * fallbackHeadingWeights.length)]
+                : '700' // fallback to 700 if no weights available
+
+              // Create the custom pair
+              const customPair = {
+                headingFont: {
+                  family: headingFont.family,
+                  weight: randomHeadingWeight,
+                  category: headingFont.category,
+                  lineHeight: 1.2,
+                  letterSpacing: -0.03
+                },
+                bodyFont: {
+                  family: bodyFont.family,
+                  weight: randomBodyWeight,
+                  category: bodyFont.category,
+                  lineHeight: 1.6,
+                  letterSpacing: 0
+                }
+              }
+
+              addFontPair(customPair)
+            }}
           >
             <div className="flex flex-col h-full w-full items-center justify-center">
               <div className="flex flex-col items-center justify-center flex-1 space-y-4">
