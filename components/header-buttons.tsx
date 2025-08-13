@@ -2,9 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dices } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Dices, RotateCcw } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ModeToggle } from '@/components/mode-toggle'
-import { SettingsPopover } from '@/components/settings-popover'
 import { useFontPairStore } from '@/lib/store'
 import { GoogleFont, fetchGoogleFonts, getFontWeights, isGoodForDisplay, getRandomFontsForPair } from '@/lib/google-fonts'
 
@@ -34,7 +46,7 @@ export function HeaderButtons() {
 
     if (isHeadingLocked && fontLock.globalHeadingFont) {
       // Use locked heading font
-      headingFont = fontLock.globalHeadingFont.isCustom ? 
+      headingFont = fontLock.globalHeadingFont.isCustom ?
         { family: fontLock.globalHeadingFont.family, category: 'custom' } :
         allFonts.find(f => f.family === fontLock.globalHeadingFont!.family) || randomFonts.headingFont
       randomHeadingWeight = fontLock.globalHeadingFont.weight
@@ -91,9 +103,14 @@ export function HeaderButtons() {
     })
   }
 
+  const handleResetApp = () => {
+    localStorage.clear()
+    sessionStorage.clear()
+    window.location.reload()
+  }
+
   return (
     <div className="flex items-center gap-2">
-      <SettingsPopover />
       <Button
         onClick={randomizeAllFontPairs}
         size="sm"
@@ -106,6 +123,39 @@ export function HeaderButtons() {
         Randomize Fonts
       </Button>
       <ModeToggle />
+      <Popover>
+        <PopoverTrigger asChild>
+          <Avatar className="w-9 h-9 cursor-pointer" title="User menu">
+            <AvatarFallback>Y</AvatarFallback>
+          </Avatar>
+        </PopoverTrigger>
+        <PopoverContent className="w-48" align="end">
+          <div className="space-y-1">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-destructive hover:text-destructive">
+                  <RotateCcw className="w-4 h-4" />
+                  Reset App Data
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset App Data</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all your saved font pairs, settings, and preferences. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleResetApp} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Reset All Data
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

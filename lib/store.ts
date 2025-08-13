@@ -145,13 +145,13 @@ export const useFontPairStore = create<FontPairStore>()(
       headingFontFilters: {
         categories: ['sans-serif', 'serif', 'monospace', 'handwriting', 'display'],
         weightRange: [100, 900], // Full range by default
-        fontSize: 48 // Default heading size
+        fontSize: 36 // Default heading size
       },
 
       bodyFontFilters: {
         categories: ['sans-serif', 'serif', 'monospace', 'handwriting', 'display'],
         weightRange: [100, 900], // Full range by default
-        fontSize: 16 // Default body size
+        fontSize: 14 // Default body size
       },
 
       fontLock: {
@@ -271,9 +271,23 @@ export const useFontPairStore = create<FontPairStore>()(
 
       updateFontPair: (id: string, updates: Partial<Omit<FontPair, 'id'>>) => {
         set(state => ({
-          fontPairs: state.fontPairs.map(pair =>
-            pair.id === id ? { ...pair, ...updates } : pair
-          )
+          fontPairs: state.fontPairs.map(pair => {
+            if (pair.id === id) {
+              const updatedPair = { ...pair, ...updates }
+              
+              // Auto-update name if fonts changed
+              if (updates.headingFont || updates.bodyFont) {
+                const headingFont = updates.headingFont || pair.headingFont
+                const bodyFont = updates.bodyFont || pair.bodyFont
+                const headingFirstWord = headingFont.family.split(' ')[0]
+                const bodyFirstWord = bodyFont.family.split(' ')[0]
+                updatedPair.name = `${headingFirstWord} ${bodyFirstWord}`
+              }
+              
+              return updatedPair
+            }
+            return pair
+          })
         }))
       },
 

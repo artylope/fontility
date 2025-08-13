@@ -98,7 +98,7 @@ export function SettingsPopover() {
               <div className="flex gap-2 w-full">
                 <div className="flex flex-col gap-1 w-full">
                   <Label htmlFor="font-lock" className="text-sm font-medium">
-                    Lock one font type across all styles
+                    Lock to a single font for all pairs
                   </Label>
 
                 </div>
@@ -116,7 +116,7 @@ export function SettingsPopover() {
             {fontLock.enabled && canAccessFontLocking() && (
               <div className="space-y-4 p-4 border border-border rounded-lg">
                 <div className="space-y-3">
-                  <p className="text-sm font-medium">Choose which font type to lock</p>
+                  <p className="text-sm font-medium">Choose which text type to lock</p>
                   <RadioGroup
                     value={fontLock.lockType}
                     onValueChange={handleFontLockTypeChange}
