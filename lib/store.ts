@@ -9,7 +9,8 @@ export type FontCategory = 'sans-serif' | 'serif' | 'monospace' | 'handwriting' 
 
 export interface FontFilters {
   categories: FontCategory[]
-  weights: string[]
+  weightRange: [number, number] // [min, max] weight range
+  fontSize: number // font size in pixels
 }
 
 export interface GlobalTextSettings {
@@ -102,6 +103,10 @@ interface FontPairStore {
   setGlobalText: (headingText: string, bodyText: string) => void
   setHeadingFontFilters: (filters: Partial<FontFilters>) => void
   setBodyFontFilters: (filters: Partial<FontFilters>) => void
+  setHeadingWeightRange: (range: [number, number]) => void
+  setBodyWeightRange: (range: [number, number]) => void
+  setHeadingFontSize: (size: number) => void
+  setBodyFontSize: (size: number) => void
 }
 
 const defaultFontPairs = [
@@ -139,12 +144,14 @@ export const useFontPairStore = create<FontPairStore>()(
 
       headingFontFilters: {
         categories: ['sans-serif', 'serif', 'monospace', 'handwriting', 'display'],
-        weights: ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+        weightRange: [100, 900], // Full range by default
+        fontSize: 48 // Default heading size
       },
 
       bodyFontFilters: {
         categories: ['sans-serif', 'serif', 'monospace', 'handwriting', 'display'],
-        weights: ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+        weightRange: [100, 900], // Full range by default
+        fontSize: 16 // Default body size
       },
 
       fontLock: {
@@ -361,6 +368,30 @@ export const useFontPairStore = create<FontPairStore>()(
       setBodyFontFilters: (filters: Partial<FontFilters>) => {
         set(state => ({
           bodyFontFilters: { ...state.bodyFontFilters, ...filters }
+        }))
+      },
+
+      setHeadingWeightRange: (range: [number, number]) => {
+        set(state => ({
+          headingFontFilters: { ...state.headingFontFilters, weightRange: range }
+        }))
+      },
+
+      setBodyWeightRange: (range: [number, number]) => {
+        set(state => ({
+          bodyFontFilters: { ...state.bodyFontFilters, weightRange: range }
+        }))
+      },
+
+      setHeadingFontSize: (size: number) => {
+        set(state => ({
+          headingFontFilters: { ...state.headingFontFilters, fontSize: size }
+        }))
+      },
+
+      setBodyFontSize: (size: number) => {
+        set(state => ({
+          bodyFontFilters: { ...state.bodyFontFilters, fontSize: size }
         }))
       },
     }),

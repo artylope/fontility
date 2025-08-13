@@ -52,8 +52,8 @@ export function PreviewArea() {
     return allFonts.filter(font => {
       const matchesCategory = headingFontFilters.categories.includes(font.category as any)
       const hasMatchingWeight = font.variants.some(variant => {
-        const weight = variant === 'regular' ? '400' : variant
-        return headingFontFilters.weights.includes(weight)
+        const weight = parseInt(variant === 'regular' ? '400' : variant)
+        return weight >= headingFontFilters.weightRange[0] && weight <= headingFontFilters.weightRange[1]
       })
       return matchesCategory && hasMatchingWeight
     })
@@ -63,8 +63,8 @@ export function PreviewArea() {
     return allFonts.filter(font => {
       const matchesCategory = bodyFontFilters.categories.includes(font.category as any)
       const hasMatchingWeight = font.variants.some(variant => {
-        const weight = variant === 'regular' ? '400' : variant
-        return bodyFontFilters.weights.includes(weight)
+        const weight = parseInt(variant === 'regular' ? '400' : variant)
+        return weight >= bodyFontFilters.weightRange[0] && weight <= bodyFontFilters.weightRange[1]
       })
       return matchesCategory && hasMatchingWeight
     })
@@ -75,10 +75,13 @@ export function PreviewArea() {
     if (filteredHeadingFonts.length === 0 || filteredBodyFonts.length === 0) return
 
     fontPairs.forEach(pair => {
+      const headingWeight = parseInt(pair.headingFont.weight)
+      const bodyWeight = parseInt(pair.bodyFont.weight)
+      
       const headingMatches = headingFontFilters.categories.includes((pair.headingFont.category || 'sans-serif') as any) &&
-        headingFontFilters.weights.includes(pair.headingFont.weight)
+        headingWeight >= headingFontFilters.weightRange[0] && headingWeight <= headingFontFilters.weightRange[1]
       const bodyMatches = bodyFontFilters.categories.includes((pair.bodyFont.category || 'sans-serif') as any) &&
-        bodyFontFilters.weights.includes(pair.bodyFont.weight)
+        bodyWeight >= bodyFontFilters.weightRange[0] && bodyWeight <= bodyFontFilters.weightRange[1]
       
       if (!headingMatches || !bodyMatches) {
         // Auto-randomize pairs that don't match current filters
@@ -98,8 +101,14 @@ export function PreviewArea() {
     const bodyFont = filteredBodyFonts[randomIndex2]
 
     // Get available weights for each font, filtered by current filter settings
-    const headingWeights = getFontWeights(headingFont).filter(weight => headingFontFilters.weights.includes(weight))
-    const bodyWeights = getFontWeights(bodyFont).filter(weight => bodyFontFilters.weights.includes(weight))
+    const headingWeights = getFontWeights(headingFont).filter(weight => {
+      const weightNum = parseInt(weight)
+      return weightNum >= headingFontFilters.weightRange[0] && weightNum <= headingFontFilters.weightRange[1]
+    })
+    const bodyWeights = getFontWeights(bodyFont).filter(weight => {
+      const weightNum = parseInt(weight)
+      return weightNum >= bodyFontFilters.weightRange[0] && weightNum <= bodyFontFilters.weightRange[1]
+    })
 
     // Filter body weights to be 300-400 range if possible, but respect filter constraints
     const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
@@ -364,12 +373,13 @@ export function PreviewArea() {
                       pairId={pair.id}
                       textType="heading"
                       key={`heading-${pair.id}-${effectiveHeadingFont.family}-${effectiveHeadingFont.weight}-${forceUpdate}`}
-                      className="text-[2.3em] text-foreground text-balance"
+                      className="text-foreground text-balance"
                       style={{
                         fontFamily: `"${effectiveHeadingFont.family}", ${getFontFallback(effectiveHeadingFont.category || 'sans-serif')}`,
                         fontWeight: effectiveHeadingFont.weight,
                         lineHeight: effectiveHeadingFont.lineHeight,
-                        letterSpacing: `${effectiveHeadingFont.letterSpacing}px`
+                        letterSpacing: `${effectiveHeadingFont.letterSpacing}px`,
+                        fontSize: `${headingFontFilters.fontSize}px`
                       }}
                     >
                       {globalText.headingText}
@@ -388,12 +398,13 @@ export function PreviewArea() {
                       pairId={pair.id}
                       textType="body"
                       key={`body-${pair.id}-${effectiveBodyFont.family}-${effectiveBodyFont.weight}-${forceUpdate}`}
-                      className="text-muted-foreground mt-4 pb-4 text-sm"
+                      className="text-muted-foreground mt-4 pb-4"
                       style={{
                         fontFamily: `"${effectiveBodyFont.family}", ${getFontFallback(effectiveBodyFont.category || 'sans-serif')}`,
                         fontWeight: effectiveBodyFont.weight,
                         lineHeight: effectiveBodyFont.lineHeight,
-                        letterSpacing: `${effectiveBodyFont.letterSpacing}px`
+                        letterSpacing: `${effectiveBodyFont.letterSpacing}px`,
+                        fontSize: `${bodyFontFilters.fontSize}px`
                       }}
                     >
                       {globalText.bodyText}
@@ -459,8 +470,14 @@ export function PreviewArea() {
               const bodyFont = filteredBodyFonts[randomIndex2]
 
               // Get available weights for each font, filtered by current filter settings
-              const headingWeights = getFontWeights(headingFont).filter(weight => headingFontFilters.weights.includes(weight))
-              const bodyWeights = getFontWeights(bodyFont).filter(weight => bodyFontFilters.weights.includes(weight))
+              const headingWeights = getFontWeights(headingFont).filter(weight => {
+                const weightNum = parseInt(weight)
+                return weightNum >= headingFontFilters.weightRange[0] && weightNum <= headingFontFilters.weightRange[1]
+              })
+              const bodyWeights = getFontWeights(bodyFont).filter(weight => {
+                const weightNum = parseInt(weight)
+                return weightNum >= bodyFontFilters.weightRange[0] && weightNum <= bodyFontFilters.weightRange[1]
+              })
 
               // Filter body weights to be 300-400 range if possible, but respect filter constraints
               const bodyWeightOptions = bodyWeights.filter(weight => parseInt(weight) >= 300 && parseInt(weight) <= 400)
