@@ -21,7 +21,7 @@ import { useFontPairStore } from '@/lib/store'
 import { GoogleFont, fetchGoogleFonts, getFontWeights, isGoodForDisplay, getRandomFontsForPair } from '@/lib/google-fonts'
 
 export function HeaderButtons() {
-  const { fontPairs, fontLock, canAccessFontLocking, updateFontPair } = useFontPairStore()
+  const { fontPairs, fontLock, canAccessFontLocking, updateFontPair, generatePairName } = useFontPairStore()
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
 
   useEffect(() => {
@@ -31,8 +31,8 @@ export function HeaderButtons() {
   const randomizeFontPair = (id: string) => {
     if (allFonts.length === 0) return
 
-    const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
-    const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
+    const isHeadingLocked = fontLock.headingLocked && canAccessFontLocking()
+    const isBodyLocked = fontLock.bodyLocked && canAccessFontLocking()
 
     // Get current font pair to preserve locked fonts
     const currentPair = fontPairs.find(pair => pair.id === id)
@@ -75,23 +75,39 @@ export function HeaderButtons() {
     }
 
     // Update the font pair
+    const newHeadingFont = {
+      family: headingFont.family,
+      weight: randomHeadingWeight,
+      category: headingFont.category,
+      lineHeight: 1.25,
+      letterSpacing: -0.025,
+      isCustom: isHeadingLocked ? fontLock.globalHeadingFont?.isCustom : false
+    }
+    
+    const newBodyFont = {
+      family: bodyFont.family,
+      weight: randomBodyWeight,
+      category: bodyFont.category,
+      lineHeight: 1.625,
+      letterSpacing: 0,
+      isCustom: isBodyLocked ? fontLock.globalBodyFont?.isCustom : false
+    }
+
+    // Generate name based on the actual fonts being used
+    const headingName = isHeadingLocked && fontLock.globalHeadingFont 
+      ? fontLock.globalHeadingFont.family.split(' ')[0]
+      : newHeadingFont.family.split(' ')[0]
+      
+    const bodyName = isBodyLocked && fontLock.globalBodyFont
+      ? fontLock.globalBodyFont.family.split(' ')[0] 
+      : newBodyFont.family.split(' ')[0]
+    
+    const newPairName = `${headingName} ${bodyName}`
+
     updateFontPair(id, {
-      headingFont: {
-        family: headingFont.family,
-        weight: randomHeadingWeight,
-        category: headingFont.category,
-        lineHeight: 1.25,
-        letterSpacing: -0.025,
-        isCustom: isHeadingLocked ? fontLock.globalHeadingFont?.isCustom : false
-      },
-      bodyFont: {
-        family: bodyFont.family,
-        weight: randomBodyWeight,
-        category: bodyFont.category,
-        lineHeight: 1.625,
-        letterSpacing: 0,
-        isCustom: isBodyLocked ? fontLock.globalBodyFont?.isCustom : false
-      }
+      headingFont: newHeadingFont,
+      bodyFont: newBodyFont,
+      name: newPairName
     })
   }
 

@@ -40,8 +40,8 @@ export function PreviewArea() {
   const [editingName, setEditingName] = useState('')
 
   // Define lock states early so they can be used in useEffect
-  const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
-  const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
+  const isHeadingLocked = fontLock.headingLocked && canAccessFontLocking()
+  const isBodyLocked = fontLock.bodyLocked && canAccessFontLocking()
 
   useEffect(() => {
     fetchGoogleFonts().then(setAllFonts)
@@ -220,7 +220,7 @@ export function PreviewArea() {
 
     // Force re-render to apply global font overrides to all cards
     setForceUpdate(prev => prev + 1)
-  }, [fontLock.enabled, fontLock.lockType, fontLock.globalHeadingFont, fontLock.globalBodyFont])
+  }, [fontLock.headingLocked, fontLock.bodyLocked, fontLock.globalHeadingFont, fontLock.globalBodyFont])
 
   useEffect(() => {
     if (activePairId && cardRefs.current[activePairId]) {

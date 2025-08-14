@@ -34,8 +34,8 @@ export interface CustomFontVariant {
 }
 
 export interface FontLockSettings {
-  enabled: boolean
-  lockType: FontLockType
+  headingLocked: boolean
+  bodyLocked: boolean
   globalHeadingFont?: {
     family: string
     weight: string
@@ -91,8 +91,8 @@ interface FontPairStore {
   deleteFontPair: (id: string) => void
   updateFontPair: (id: string, updates: Partial<Omit<FontPair, 'id'>>) => void
   setActivePair: (id: string) => void
-  setFontLockEnabled: (enabled: boolean) => void
-  setFontLockType: (type: FontLockType) => void
+  setHeadingLocked: (locked: boolean) => void
+  setBodyLocked: (locked: boolean) => void
   setGlobalHeadingFont: (family: string, weight: string, category?: string, isCustom?: boolean) => void
   setGlobalBodyFont: (family: string, weight: string, category?: string, isCustom?: boolean) => void
   setUserTier: (tier: 'free' | 'pro') => void
@@ -107,6 +107,7 @@ interface FontPairStore {
   setBodyWeightRange: (range: [number, number]) => void
   setHeadingFontSize: (size: number) => void
   setBodyFontSize: (size: number) => void
+  generatePairName: (headingFont: any, bodyFont: any) => string
 }
 
 const defaultFontPairs = [
@@ -155,8 +156,8 @@ export const useFontPairStore = create<FontPairStore>()(
       },
 
       fontLock: {
-        enabled: false,
-        lockType: 'headings',
+        headingLocked: false,
+        bodyLocked: false,
         globalHeadingFont: undefined,
         globalBodyFont: undefined,
       },
@@ -174,8 +175,8 @@ export const useFontPairStore = create<FontPairStore>()(
 
         // Check if font locking is enabled and accessible
         const canAccessLocking = userTier.features.fontLocking
-        const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessLocking
-        const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessLocking
+        const isHeadingLocked = fontLock.headingLocked && canAccessLocking
+        const isBodyLocked = fontLock.bodyLocked && canAccessLocking
 
         // If no custom pair provided, generate random fonts
         let finalPair = customPair
@@ -246,10 +247,8 @@ export const useFontPairStore = create<FontPairStore>()(
           }
         }
 
-        // Generate name from font families
-        const headingFirstWord = headingFont.family.split(' ')[0]
-        const bodyFirstWord = bodyFont.family.split(' ')[0]
-        const generatedName = `${headingFirstWord} ${bodyFirstWord}`
+        // Generate name from font families using helper function
+        const generatedName = get().generatePairName(headingFont, bodyFont)
 
         const newPair: FontPair = {
           id: newId,
@@ -279,9 +278,7 @@ export const useFontPairStore = create<FontPairStore>()(
               if (updates.headingFont || updates.bodyFont) {
                 const headingFont = updates.headingFont || pair.headingFont
                 const bodyFont = updates.bodyFont || pair.bodyFont
-                const headingFirstWord = headingFont.family.split(' ')[0]
-                const bodyFirstWord = bodyFont.family.split(' ')[0]
-                updatedPair.name = `${headingFirstWord} ${bodyFirstWord}`
+                updatedPair.name = get().generatePairName(headingFont, bodyFont)
               }
 
               return updatedPair
@@ -295,15 +292,15 @@ export const useFontPairStore = create<FontPairStore>()(
         set({ activePairId: id })
       },
 
-      setFontLockEnabled: (enabled: boolean) => {
+      setHeadingLocked: (locked: boolean) => {
         set(state => ({
-          fontLock: { ...state.fontLock, enabled }
+          fontLock: { ...state.fontLock, headingLocked: locked }
         }))
       },
 
-      setFontLockType: (lockType: FontLockType) => {
+      setBodyLocked: (locked: boolean) => {
         set(state => ({
-          fontLock: { ...state.fontLock, lockType }
+          fontLock: { ...state.fontLock, bodyLocked: locked }
         }))
       },
 
@@ -407,6 +404,24 @@ export const useFontPairStore = create<FontPairStore>()(
         set(state => ({
           bodyFontFilters: { ...state.bodyFontFilters, fontSize: size }
         }))
+      },
+
+      // Helper function to generate pair name based on current lock state
+      generatePairName: (headingFont: any, bodyFont: any) => {
+        const state = get()
+        const canAccessLocking = state.userTier.features.fontLocking
+        const isHeadingLocked = state.fontLock.headingLocked && canAccessLocking
+        const isBodyLocked = state.fontLock.bodyLocked && canAccessLocking
+        
+        const headingName = isHeadingLocked && state.fontLock.globalHeadingFont 
+          ? state.fontLock.globalHeadingFont.family.split(' ')[0]
+          : headingFont.family.split(' ')[0]
+          
+        const bodyName = isBodyLocked && state.fontLock.globalBodyFont
+          ? state.fontLock.globalBodyFont.family.split(' ')[0] 
+          : bodyFont.family.split(' ')[0]
+        
+        return `${headingName} ${bodyName}`
       },
     }),
     {

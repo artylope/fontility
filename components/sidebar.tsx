@@ -7,10 +7,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Lock } from 'lucide-react'
-import { useFontPairStore, FontCategory, FontLockType } from '@/lib/store'
+import { useFontPairStore, FontCategory } from '@/lib/store'
 import { GoogleFont, fetchGoogleFonts } from '@/lib/google-fonts'
 import { FontSelector } from './font-selector'
 
@@ -38,11 +36,12 @@ export function Sidebar() {
     setBodyWeightRange,
     setHeadingFontSize,
     setBodyFontSize,
-    setFontLockEnabled,
-    setFontLockType,
+    setHeadingLocked,
+    setBodyLocked,
     setGlobalHeadingFont,
     setGlobalBodyFont,
-    updateFontPair
+    updateFontPair,
+    generatePairName
   } = useFontPairStore()
 
   const [allFonts, setAllFonts] = useState<GoogleFont[]>([])
@@ -91,15 +90,75 @@ export function Sidebar() {
     return filters.weightRange[0] === 100 && filters.weightRange[1] === 900
   }
 
-  // Font lock handlers
-  const handleFontLockToggle = (enabled: boolean) => {
-    if (!canAccessFontLocking()) return
-    setFontLockEnabled(enabled)
+  // Helper function to update all pair names
+  const updateAllPairNames = () => {
+    fontPairs.forEach(pair => {
+      const newName = generatePairName(pair.headingFont, pair.bodyFont)
+      if (newName !== pair.name) {
+        updateFontPair(pair.id, { name: newName })
+      }
+    })
+    // Update all pair names to reflect new font
+    setTimeout(() => updateAllPairNames(), 0)
   }
 
-  const handleFontLockTypeChange = (value: string) => {
+  // Font lock handlers
+  const handleHeadingLockToggle = (locked: boolean) => {
     if (!canAccessFontLocking()) return
-    setFontLockType(value as FontLockType)
+    setHeadingLocked(locked)
+    
+    if (locked) {
+      // Set default heading font if none exists
+      if (!fontLock.globalHeadingFont) {
+        setGlobalHeadingFont('Inter', '700', 'sans-serif', false)
+      }
+      // Update all existing pairs to use the global heading font
+      const targetFont = fontLock.globalHeadingFont || { family: 'Inter', weight: '700', category: 'sans-serif', isCustom: false }
+      fontPairs.forEach(pair => {
+        updateFontPair(pair.id, {
+          headingFont: { 
+            family: targetFont.family, 
+            weight: targetFont.weight, 
+            category: targetFont.category, 
+            lineHeight: 1.25, 
+            letterSpacing: -0.025, 
+            isCustom: targetFont.isCustom 
+          }
+        })
+      })
+    }
+    
+    // Update all pair names to reflect new lock state
+    setTimeout(() => updateAllPairNames(), 0)
+  }
+
+  const handleBodyLockToggle = (locked: boolean) => {
+    if (!canAccessFontLocking()) return
+    setBodyLocked(locked)
+    
+    if (locked) {
+      // Set default body font if none exists
+      if (!fontLock.globalBodyFont) {
+        setGlobalBodyFont('Inter', '400', 'sans-serif', false)
+      }
+      // Update all existing pairs to use the global body font
+      const targetFont = fontLock.globalBodyFont || { family: 'Inter', weight: '400', category: 'sans-serif', isCustom: false }
+      fontPairs.forEach(pair => {
+        updateFontPair(pair.id, {
+          bodyFont: { 
+            family: targetFont.family, 
+            weight: targetFont.weight, 
+            category: targetFont.category, 
+            lineHeight: 1.625, 
+            letterSpacing: 0, 
+            isCustom: targetFont.isCustom 
+          }
+        })
+      })
+    }
+    
+    // Update all pair names to reflect new lock state
+    setTimeout(() => updateAllPairNames(), 0)
   }
 
   const handleGlobalHeadingFontChange = (family: string, weight: string, category?: string, isCustom?: boolean) => {
@@ -110,6 +169,8 @@ export function Sidebar() {
         headingFont: { family, weight, category, lineHeight: 1.25, letterSpacing: -0.025, isCustom }
       })
     })
+    // Update all pair names to reflect new font
+    setTimeout(() => updateAllPairNames(), 0)
   }
 
   const handleGlobalBodyFontChange = (family: string, weight: string, category?: string, isCustom?: boolean) => {
@@ -120,12 +181,14 @@ export function Sidebar() {
         bodyFont: { family, weight, category, lineHeight: 1.625, letterSpacing: 0, isCustom }
       })
     })
+    // Update all pair names to reflect new font
+    setTimeout(() => updateAllPairNames(), 0)
   }
 
 
   // Lock state checks
-  const isHeadingLocked = fontLock.enabled && fontLock.lockType === 'headings' && canAccessFontLocking()
-  const isBodyLocked = fontLock.enabled && fontLock.lockType === 'body' && canAccessFontLocking()
+  const isHeadingLocked = fontLock.headingLocked && canAccessFontLocking()
+  const isBodyLocked = fontLock.bodyLocked && canAccessFontLocking()
 
   return (
     <div className="w-88 border-r border-border flex flex-col h-full">
@@ -192,86 +255,109 @@ export function Sidebar() {
               </AccordionItem>
 
               {/* Style (Categories) */}
-              <AccordionItem value="heading-style" className={`border-none ${isHeadingLocked ? 'opacity-50' : ''}`}>
+              <AccordionItem value="heading-style" className="border-none">
                 <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    Font Style
-                    {isHeadingLocked && <Lock className="w-3 h-3" />}
-                  </div>
+                  Font Style
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-4">
+                    {/* Lock to single font toggle */}
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="heading-lock" className="text-sm font-medium">
+                        Lock to a single font for all pairs
+                      </Label>
+                      <Switch
+                        id="heading-lock"
+                        checked={isHeadingLocked}
+                        onCheckedChange={handleHeadingLockToggle}
+                        disabled={!canAccessFontLocking()}
+                      />
+                    </div>
+
+                    {/* Font selector when locked */}
+                    {isHeadingLocked && (
+                      <div className="p-3 bg-muted rounded-lg">
+                        <FontSelector
+                          label=""
+                          fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
+                          fontWeight={fontLock.globalHeadingFont?.weight || '700'}
+                          onFontChange={handleGlobalHeadingFontChange}
+                        />
+                      </div>
+                    )}
+
+                    {/* Category grid when not locked */}
+                    {!isHeadingLocked && (
+                      <div className="grid grid-cols-2 gap-2">
                     {categoryOrder.map(category => {
                       const isSelected = headingFontFilters.categories.includes(category)
 
-                      return (
-                        <button
-                          key={`heading-${category}`}
-                          onClick={() => !isHeadingLocked && handleCategoryToggle(category, true)}
-                          disabled={isHeadingLocked}
-                          className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
-                            ? 'border-stone-900 bg-stone-900/10 text-stone-900'
-                            : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
-                            } ${isHeadingLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                        >
-                          <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
-                            {category.replace('-', ' ')}
-                          </div>
-                          <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
-                            {getCategoryCount(category)}
-                          </div>
-                        </button>
-                      )
-                    })}
+                        return (
+                          <button
+                            key={`heading-${category}`}
+                            onClick={() => handleCategoryToggle(category, true)}
+                            className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
+                              ? 'border-stone-900 bg-stone-900/10 text-stone-900'
+                              : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
+                              } cursor-pointer`}
+                          >
+                            <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
+                              {category.replace('-', ' ')}
+                            </div>
+                            <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
+                              {getCategoryCount(category)}
+                            </div>
+                          </button>
+                        )
+                      })}
+                      </div>
+                    )}
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
               {/* Font Weight */}
-              <AccordionItem value="heading-weight" className={`border-none ${isHeadingLocked ? 'opacity-50' : ''}`}>
-                <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  <div className="flex items-center gap-2">
+              {!isHeadingLocked && (
+                <AccordionItem value="heading-weight" className="border-none">
+                  <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
                     Font Weight
-                    {isHeadingLocked && <Lock className="w-3 h-3" />}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{headingFontFilters.weightRange[0] === headingFontFilters.weightRange[1] ? headingFontFilters.weightRange[0] : `${headingFontFilters.weightRange[0]}-${headingFontFilters.weightRange[1]}`}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => !isHeadingLocked && setHeadingWeightRange([100, 900])}
-                        disabled={isHeadingLocked}
-                        className="h-6 px-2 text-xs"
-                      >
-                        Reset
-                      </Button>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-2 pb-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{headingFontFilters.weightRange[0] === headingFontFilters.weightRange[1] ? headingFontFilters.weightRange[0] : `${headingFontFilters.weightRange[0]}-${headingFontFilters.weightRange[1]}`}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setHeadingWeightRange([100, 900])}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                      <Slider
+                        value={headingFontFilters.weightRange}
+                        onValueChange={(value) => setHeadingWeightRange(value as [number, number])}
+                        min={100}
+                        max={900}
+                        step={100}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>100</span>
+                        <span>200</span>
+                        <span>300</span>
+                        <span>400</span>
+                        <span>500</span>
+                        <span>600</span>
+                        <span>700</span>
+                        <span>800</span>
+                        <span>900</span>
+                      </div>
                     </div>
-                    <Slider
-                      value={headingFontFilters.weightRange}
-                      onValueChange={(value) => !isHeadingLocked && setHeadingWeightRange(value as [number, number])}
-                      min={100}
-                      max={900}
-                      step={100}
-                      disabled={isHeadingLocked}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>100</span>
-                      <span>200</span>
-                      <span>300</span>
-                      <span>400</span>
-                      <span>500</span>
-                      <span>600</span>
-                      <span>700</span>
-                      <span>800</span>
-                      <span>900</span>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
             </Accordion>
           </div>
 
@@ -335,174 +421,112 @@ export function Sidebar() {
               </AccordionItem>
 
               {/* Style (Categories) */}
-              <AccordionItem value="body-style" className={`border-none ${isBodyLocked ? 'opacity-50' : ''}`}>
+              <AccordionItem value="body-style" className="border-none">
                 <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    Font Style
-                    {isBodyLocked && <Lock className="w-3 h-3" />}
-                  </div>
+                  Font Style
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-4">
+                    {/* Lock to single font toggle */}
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="body-lock" className="text-sm font-medium">
+                        Lock to a single font for all pairs
+                      </Label>
+                      <Switch
+                        id="body-lock"
+                        checked={isBodyLocked}
+                        onCheckedChange={handleBodyLockToggle}
+                        disabled={!canAccessFontLocking()}
+                      />
+                    </div>
+
+                    {/* Font selector when locked */}
+                    {isBodyLocked && (
+                      <div className="p-3 bg-muted rounded-lg">
+                        <FontSelector
+                          label=""
+                          fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
+                          fontWeight={fontLock.globalBodyFont?.weight || '400'}
+                          onFontChange={handleGlobalBodyFontChange}
+                        />
+                      </div>
+                    )}
+
+                    {/* Category grid when not locked */}
+                    {!isBodyLocked && (
+                      <div className="grid grid-cols-2 gap-2">
                     {categoryOrder.map(category => {
                       const isSelected = bodyFontFilters.categories.includes(category)
 
-                      return (
-                        <button
-                          key={`body-${category}`}
-                          onClick={() => !isBodyLocked && handleCategoryToggle(category, false)}
-                          disabled={isBodyLocked}
-                          className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
-                            ? 'border-stone-900 bg-stone-900/10 text-stone-900'
-                            : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
-                            } ${isBodyLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                        >
-                          <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
-                            {category.replace('-', ' ')}
-                          </div>
-                          <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
-                            {getCategoryCount(category)}
-                          </div>
-                        </button>
-                      )
-                    })}
+                        return (
+                          <button
+                            key={`body-${category}`}
+                            onClick={() => handleCategoryToggle(category, false)}
+                            className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
+                              ? 'border-stone-900 bg-stone-900/10 text-stone-900'
+                              : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
+                              } cursor-pointer`}
+                          >
+                            <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
+                              {category.replace('-', ' ')}
+                            </div>
+                            <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
+                              {getCategoryCount(category)}
+                            </div>
+                          </button>
+                        )
+                      })}
+                      </div>
+                    )}
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
               {/* Font Weight */}
-              <AccordionItem value="body-weight" className={`border-none ${isBodyLocked ? 'opacity-50' : ''}`}>
-                <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  <div className="flex items-center gap-2">
+              {!isBodyLocked && (
+                <AccordionItem value="body-weight" className="border-none">
+                  <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
                     Font Weight
-                    {isBodyLocked && <Lock className="w-3 h-3" />}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{bodyFontFilters.weightRange[0] === bodyFontFilters.weightRange[1] ? bodyFontFilters.weightRange[0] : `${bodyFontFilters.weightRange[0]}-${bodyFontFilters.weightRange[1]}`}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => !isBodyLocked && setBodyWeightRange([100, 900])}
-                        disabled={isBodyLocked}
-                        className="h-6 px-2 text-xs"
-                      >
-                        Reset
-                      </Button>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-2 pb-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{bodyFontFilters.weightRange[0] === bodyFontFilters.weightRange[1] ? bodyFontFilters.weightRange[0] : `${bodyFontFilters.weightRange[0]}-${bodyFontFilters.weightRange[1]}`}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setBodyWeightRange([100, 900])}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                      <Slider
+                        value={bodyFontFilters.weightRange}
+                        onValueChange={(value) => setBodyWeightRange(value as [number, number])}
+                        min={100}
+                        max={900}
+                        step={100}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>100</span>
+                        <span>200</span>
+                        <span>300</span>
+                        <span>400</span>
+                        <span>500</span>
+                        <span>600</span>
+                        <span>700</span>
+                        <span>800</span>
+                        <span>900</span>
+                      </div>
                     </div>
-                    <Slider
-                      value={bodyFontFilters.weightRange}
-                      onValueChange={(value) => !isBodyLocked && setBodyWeightRange(value as [number, number])}
-                      min={100}
-                      max={900}
-                      step={100}
-                      disabled={isBodyLocked}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>100</span>
-                      <span>200</span>
-                      <span>300</span>
-                      <span>400</span>
-                      <span>500</span>
-                      <span>600</span>
-                      <span>700</span>
-                      <span>800</span>
-                      <span>900</span>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
             </Accordion>
           </div>
 
-          {/* Font Lock Settings */}
-          <div className="space-y-4 border-b border-border py-4 px-4">
-            <h2 className="text-sm font-semibold text-primary uppercase tracking-[1px]">Advanced</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex gap-2 w-full">
-                  <div className="flex flex-col gap-1 w-full">
-                    <Label htmlFor="font-lock" className="text-sm font-medium">
-                      Lock to a single font for all pairs
-                    </Label>
-                  </div>
-                  <div className="h-5 flex items-center">
-                    <Switch
-                      id="font-lock"
-                      checked={fontLock.enabled && canAccessFontLocking()}
-                      onCheckedChange={handleFontLockToggle}
-                      disabled={!canAccessFontLocking()}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {fontLock.enabled && canAccessFontLocking() && (
-                <div className="space-y-4 p-4 border border-border rounded-lg">
-
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium">Choose which text type to lock</p>
-                    <RadioGroup
-                      value={fontLock.lockType}
-                      onValueChange={handleFontLockTypeChange}
-                      className="-space-y-1"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="headings" id="headings" />
-                        <Label htmlFor="headings" className="text-sm">
-                          Heading
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="body" id="body" />
-                        <Label htmlFor="body" className="text-sm">
-                          Body
-                        </Label>
-                      </div>
-                    </RadioGroup>
-
-                    {(isHeadingLocked || isBodyLocked) && (
-                      <div className="space-y-3 bg-muted rounded-lg px-4 pt-2 pb-4 mt-2">
-                        {isHeadingLocked && (
-                          <div className="space-y-2">
-                            <FontSelector
-                              label=""
-                              fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
-                              fontWeight={fontLock.globalHeadingFont?.weight || '700'}
-                              onFontChange={handleGlobalHeadingFontChange}
-                            />
-                          </div>
-                        )}
-
-                        {isBodyLocked && (
-                          <div className="space-y-2">
-                            <FontSelector
-                              label=""
-                              fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
-                              fontWeight={fontLock.globalBodyFont?.weight || '400'}
-                              onFontChange={handleGlobalBodyFontChange}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {!canAccessFontLocking() && (
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Font locking is a Pro feature. Upgrade to unlock this functionality.
-                  </p>
-                </div>
-              )}
-
-            </div>
-          </div>
         </div>
       </div>
     </div>
