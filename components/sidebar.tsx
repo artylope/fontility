@@ -187,7 +187,7 @@ export function Sidebar() {
       <div className="pb-48 flex-1 overflow-y-scroll scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-muted-foreground">
         <div className="">
           {/* Heading Section */}
-          <div className="space-y-4 border-b border-border py-6 px-6">
+          <div className="space-y-4 border-b border-border py-6 px-4">
             <h2 className="text-sm font-semibold text-primary uppercase tracking-[1px]">Heading</h2>
 
             <Accordion type="multiple" defaultValue={["heading-display"]} className="space-y-2">
@@ -213,8 +213,10 @@ export function Sidebar() {
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{headingFontFilters.fontSize}px</span>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="heading-font-size" className="text-sm font-medium">
+                        Font Size
+                      </Label>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -224,24 +226,20 @@ export function Sidebar() {
                         Reset
                       </Button>
                     </div>
-                    <Slider
-                      value={[headingFontFilters.fontSize]}
-                      onValueChange={(value) => setHeadingFontSize(value[0])}
+                    <Input
+                      id="heading-font-size"
+                      type="number"
+                      value={headingFontFilters.fontSize}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value)
+                        if (!isNaN(value) && value >= 12 && value <= 96) {
+                          setHeadingFontSize(value)
+                        }
+                      }}
                       min={12}
                       max={96}
-                      step={2}
-                      className="w-full  "
+                      className="w-full"
                     />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>12px</span>
-                      <span>24px</span>
-                      <span>36px</span>
-                      <span>48px</span>
-                      <span>60px</span>
-                      <span>72px</span>
-                      <span>84px</span>
-                      <span>96px</span>
-                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -251,7 +249,7 @@ export function Sidebar() {
                 <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
                   Font Style
                 </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
+                <AccordionContent className="pt-2 pb-4 px-1">
                   <div className="space-y-4">
                     {/* Lock to single font toggle */}
                     <div className="flex items-center justify-between py-1">
@@ -364,8 +362,10 @@ export function Sidebar() {
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{bodyFontFilters.fontSize}px</span>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="body-font-size" className="text-sm font-medium">
+                        Font Size
+                      </Label>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -375,23 +375,20 @@ export function Sidebar() {
                         Reset
                       </Button>
                     </div>
-                    <Slider
-                      value={[bodyFontFilters.fontSize]}
-                      onValueChange={(value) => setBodyFontSize(value[0])}
+                    <Input
+                      id="body-font-size"
+                      type="number"
+                      value={bodyFontFilters.fontSize}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value)
+                        if (!isNaN(value) && value >= 8 && value <= 32) {
+                          setBodyFontSize(value)
+                        }
+                      }}
                       min={8}
                       max={32}
-                      step={1}
-                      className="w-full  "
+                      className="w-full"
                     />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>8px</span>
-                      <span>12px</span>
-                      <span>16px</span>
-                      <span>20px</span>
-                      <span>24px</span>
-                      <span>28px</span>
-                      <span>32px</span>
-                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
