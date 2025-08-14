@@ -230,7 +230,7 @@ export function Sidebar() {
                       min={12}
                       max={96}
                       step={2}
-                      className="w-full"
+                      className="w-full [&_.slider-track]:!bg-zinc-300"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>12px</span>
@@ -317,7 +317,7 @@ export function Sidebar() {
                         min={100}
                         max={900}
                         step={100}
-                        className="w-full"
+                        className="w-full  [&>span]:!bg-zinc-300"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>100</span>
@@ -381,7 +381,7 @@ export function Sidebar() {
                       min={8}
                       max={32}
                       step={1}
-                      className="w-full"
+                      className="w-full  [&>span]:!bg-zinc-300"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>8px</span>
@@ -467,7 +467,7 @@ export function Sidebar() {
                         min={100}
                         max={900}
                         step={100}
-                        className="w-full"
+                        className="w-full  [&>span]:!bg-zinc-300"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>100</span>
