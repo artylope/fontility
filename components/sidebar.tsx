@@ -11,15 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useFontPairStore, FontCategory } from '@/lib/store'
 import { GoogleFont, fetchGoogleFonts } from '@/lib/google-fonts'
 import { FontSelector } from './font-selector'
-
-// Font styles for category visualization
-const categoryFontStyles = {
-  'serif': { fontFamily: 'Georgia, serif' },
-  'sans-serif': { fontFamily: 'Inter, -apple-system, system-ui, sans-serif' },
-  'monospace': { fontFamily: 'Monaco, Consolas, "Liberation Mono", monospace' },
-  'handwriting': { fontFamily: 'Brush Script MT, cursive' },
-  'display': { fontFamily: 'Impact, "Arial Black", sans-serif' }
-}
+import { CategorySelector } from './category-selector'
 
 export function Sidebar() {
   const {
@@ -262,7 +254,7 @@ export function Sidebar() {
                 <AccordionContent className="pt-2 pb-4">
                   <div className="space-y-4">
                     {/* Lock to single font toggle */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between py-1">
                       <Label htmlFor="heading-lock" className="text-sm font-medium">
                         Lock to a single font for all pairs
                       </Label>
@@ -288,29 +280,13 @@ export function Sidebar() {
 
                     {/* Category grid when not locked */}
                     {!isHeadingLocked && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {categoryOrder.map(category => {
-                          const isSelected = headingFontFilters.categories.includes(category)
-
-                          return (
-                            <button
-                              key={`heading-${category}`}
-                              onClick={() => handleCategoryToggle(category, true)}
-                              className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
-                                ? 'border-zinc-900 bg-zinc-900/10 text-zinc-900'
-                                : 'border-border bg-background hover:border-zinc-900/50 hover:bg-zinc-900/5'
-                                } cursor-pointer`}
-                            >
-                              <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
-                                {category.replace('-', ' ')}
-                              </div>
-                              <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-zinc-100 text-zinc-700 rounded-full font-normal">
-                                {getCategoryCount(category)}
-                              </div>
-                            </button>
-                          )
-                        })}
-                      </div>
+                      <CategorySelector
+                        categories={categoryOrder}
+                        selectedCategories={headingFontFilters.categories}
+                        onCategoryToggle={(category) => handleCategoryToggle(category, true)}
+                        getCategoryCount={getCategoryCount}
+                        categoryOrder={categoryOrder}
+                      />
                     )}
                   </div>
                 </AccordionContent>
@@ -428,7 +404,7 @@ export function Sidebar() {
                 <AccordionContent className="pt-2 pb-4">
                   <div className="space-y-4">
                     {/* Lock to single font toggle */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between py-1">
                       <Label htmlFor="body-lock" className="text-sm font-medium">
                         Lock to a single font for all pairs
                       </Label>
@@ -454,29 +430,13 @@ export function Sidebar() {
 
                     {/* Category grid when not locked */}
                     {!isBodyLocked && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {categoryOrder.map(category => {
-                          const isSelected = bodyFontFilters.categories.includes(category)
-
-                          return (
-                            <button
-                              key={`body-${category}`}
-                              onClick={() => handleCategoryToggle(category, false)}
-                              className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
-                                ? 'border-zinc-900 bg-zinc-900/10 text-zinc-900'
-                                : 'border-border bg-background hover:border-zinc-900/50 hover:bg-zinc-900/5'
-                                } cursor-pointer`}
-                            >
-                              <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
-                                {category.replace('-', ' ')}
-                              </div>
-                              <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-zinc-100 text-zinc-700 rounded-full font-normal">
-                                {getCategoryCount(category)}
-                              </div>
-                            </button>
-                          )
-                        })}
-                      </div>
+                      <CategorySelector
+                        categories={categoryOrder}
+                        selectedCategories={bodyFontFilters.categories}
+                        onCategoryToggle={(category) => handleCategoryToggle(category, false)}
+                        getCategoryCount={getCategoryCount}
+                        categoryOrder={categoryOrder}
+                      />
                     )}
                   </div>
                 </AccordionContent>
