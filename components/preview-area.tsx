@@ -77,12 +77,12 @@ export function PreviewArea() {
     fontPairs.forEach(pair => {
       const headingWeight = parseInt(pair.headingFont.weight)
       const bodyWeight = parseInt(pair.bodyFont.weight)
-      
+
       const headingMatches = headingFontFilters.categories.includes((pair.headingFont.category || 'sans-serif') as any) &&
         headingWeight >= headingFontFilters.weightRange[0] && headingWeight <= headingFontFilters.weightRange[1]
       const bodyMatches = bodyFontFilters.categories.includes((pair.bodyFont.category || 'sans-serif') as any) &&
         bodyWeight >= bodyFontFilters.weightRange[0] && bodyWeight <= bodyFontFilters.weightRange[1]
-      
+
       if (!headingMatches || !bodyMatches) {
         // Auto-randomize pairs that don't match current filters
         randomizeFontPair(pair.id)
@@ -145,6 +145,14 @@ export function PreviewArea() {
     })
   }
 
+  const randomizeAllFontPairs = () => {
+    if (filteredHeadingFonts.length === 0 || filteredBodyFonts.length === 0) return
+
+    fontPairs.forEach(pair => {
+      randomizeFontPair(pair.id)
+    })
+  }
+
 
   // Load fonts when fontPairs changes, but only for changed pairs
   useEffect(() => {
@@ -162,7 +170,7 @@ export function PreviewArea() {
     changedPairs.forEach(pair => {
       const effectiveHeadingFont = getEffectiveHeadingFont(pair)
       const effectiveBodyFont = getEffectiveBodyFont(pair)
-      
+
       if (effectiveHeadingFont.family) {
         const fontKey = `${effectiveHeadingFont.family}-${effectiveHeadingFont.weight}`
         setLoadingFonts(prev => new Set(prev).add(fontKey))
@@ -296,7 +304,7 @@ export function PreviewArea() {
   }, [isBodyLocked, fontLock.globalBodyFont])
 
   return (
-    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent" style={{ pointerEvents: 'none' }}>
+    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent relative" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
       <div className="p-6 w-full" style={{ pointerEvents: 'auto' }}>
 
@@ -304,7 +312,7 @@ export function PreviewArea() {
           {fontPairs.map((pair) => {
             const effectiveHeadingFont = getEffectiveHeadingFont(pair)
             const effectiveBodyFont = getEffectiveBodyFont(pair)
-            
+
             return (<Card
               key={pair.id}
               ref={(el) => {
@@ -419,10 +427,10 @@ export function PreviewArea() {
                     pair={pair}
                     isHeadingLocked={isHeadingLocked}
                     isBodyLocked={isBodyLocked}
-                    onHeadingFontChange={(family, weight, category, isCustom) => 
+                    onHeadingFontChange={(family, weight, category, isCustom) =>
                       handleHeadingFontChange(pair.id, family, weight, category, isCustom)
                     }
-                    onBodyFontChange={(family, weight, category, isCustom) => 
+                    onBodyFontChange={(family, weight, category, isCustom) =>
                       handleBodyFontChange(pair.id, family, weight, category, isCustom)
                     }
                     onDeletePair={deleteFontPair}
@@ -431,12 +439,12 @@ export function PreviewArea() {
                     trigger={
                       <div className="space-y-1 hover:bg-muted/30 p-2 -m-2 rounded transition-colors">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">Heading:</span> 
+                          <span className="font-medium">Heading:</span>
                           <span className="flex-1 ml-2">{effectiveHeadingFont.family} {effectiveHeadingFont.weight}</span>
                           {isHeadingLocked && <Lock className="w-3 h-3 ml-2 opacity-60" />}
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">Body:</span> 
+                          <span className="font-medium">Body:</span>
                           <span className="flex-1 ml-2">{effectiveBodyFont.family} {effectiveBodyFont.weight}</span>
                           {isBodyLocked && <Lock className="w-3 h-3 ml-2 opacity-60" />}
                         </div>
@@ -529,6 +537,20 @@ export function PreviewArea() {
           </Card>
         </div>
       </div>
+
+      {/* Floating randomize button */}
+      <Button
+        onClick={randomizeAllFontPairs}
+        className="fixed bottom-6 right-6 !h-16 !w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 z-10"
+        title="Randomize all font pairs"
+        disabled={filteredHeadingFonts.length === 0 || filteredBodyFonts.length === 0}
+        style={{ pointerEvents: 'auto' }}
+      >
+        <div className="flex items-center justify-center">
+          <Dices className="!w-8 !h-8" strokeWidth={1.2} />
+        </div>
+
+      </Button>
     </div>
   )
 }

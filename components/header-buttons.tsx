@@ -111,17 +111,6 @@ export function HeaderButtons() {
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        onClick={randomizeAllFontPairs}
-        size="sm"
-        variant="outline"
-        className="gap-2"
-        title="Randomize all font pairs"
-        disabled={allFonts.length === 0}
-      >
-        <Dices className="w-4 h-4" />
-        Randomize Fonts
-      </Button>
       <ModeToggle />
       <Popover>
         <PopoverTrigger asChild>
