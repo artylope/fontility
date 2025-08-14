@@ -306,9 +306,9 @@ export function PreviewArea() {
   return (
     <div className="bg-muted dark:bg-background flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-muted-foreground relative" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
-      <div className="p-2 pr-4 w-full " style={{ pointerEvents: 'auto' }}>
+      <div className="p-2 pr-4 lg:p-4 lg:pr-6  w-full " style={{ pointerEvents: 'auto' }}>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 4xl:grid-cols-5 gap-4 lg:gap-6 w-full">
           {fontPairs.map((pair) => {
             const effectiveHeadingFont = getEffectiveHeadingFont(pair)
             const effectiveBodyFont = getEffectiveBodyFont(pair)
