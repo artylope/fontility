@@ -46,9 +46,6 @@ export function CategorySelector({
                         >
                             {category.replace('-', ' ')}
                         </div>
-                        <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-muted text-muted-foreground rounded-full font-normal">
-                            {getCategoryCount(category)}
-                        </div>
                     </button>
                 )
             })}

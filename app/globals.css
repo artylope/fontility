@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -44,9 +43,9 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --breakpoint-3xl: 1280px;
-  --breakpoint-4xl: 1440px;
-  --breakpoint-5xl: 1600px;
+  --breakpoint-3xl: 1440px;
+  --breakpoint-4xl: 1600px;
+  --breakpoint-5xl: 1920px;
 
 }
 

@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+
 import { useFontPairStore, FontCategory } from '@/lib/store'
 import { GoogleFont, fetchGoogleFonts } from '@/lib/google-fonts'
 import { FontSelector } from './font-selector'
@@ -187,301 +187,273 @@ export function Sidebar() {
       <div className="pb-48 flex-1 overflow-y-scroll scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-muted-foreground">
         <div className="">
           {/* Heading Section */}
-          <div className="space-y-4 border-b border-border py-6 px-4">
+          <div className="space-y-4 py-6 px-6">
             <h2 className="text-sm font-semibold text-primary uppercase tracking-[1px]">Heading</h2>
 
-            <Accordion type="multiple" defaultValue={["heading-display"]} className="space-y-2">
+            <div className="space-y-6">
               {/* Display Text */}
-              <AccordionItem value="heading-display" className="border-none">
-                <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  Display Text
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  <Input
-                    id="heading-text"
-                    value={globalText.headingText}
-                    onChange={(e) => setGlobalText(e.target.value, globalText.bodyText)}
-                    className="text-sm bg-background"
-                  />
-                </AccordionContent>
-              </AccordionItem>
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-foreground">Display Text</h3>
+                <Input
+                  id="heading-text"
+                  value={globalText.headingText}
+                  onChange={(e) => setGlobalText(e.target.value, globalText.bodyText)}
+                  className="text-sm bg-background"
+                />
+              </div>
 
               {/* Font Size */}
-              <AccordionItem value="heading-size" className="border-none">
-                <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  Font Size
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="heading-font-size" className="text-sm font-medium">
-                        Font Size
-                      </Label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setHeadingFontSize(48)}
-                        className="h-6 px-2 text-xs"
-                      >
-                        Reset
-                      </Button>
-                    </div>
-                    <Input
-                      id="heading-font-size"
-                      type="number"
-                      value={headingFontFilters.fontSize}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value)
-                        if (!isNaN(value) && value >= 12 && value <= 96) {
-                          setHeadingFontSize(value)
-                        }
-                      }}
-                      min={12}
-                      max={96}
-                      className="w-full"
-                    />
+              <div className="space-y-3">
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="heading-font-size" className="text-sm font-medium">
+                      Font Size
+                    </Label>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
+                  <Input
+                    id="heading-font-size"
+                    type="number"
+                    value={headingFontFilters.fontSize}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value)
+                      if (!isNaN(value) && value >= 12 && value <= 96) {
+                        setHeadingFontSize(value)
+                      }
+                    }}
+                    min={12}
+                    max={96}
+                    className="w-full"
+                  />
+                </div>
+              </div>
 
               {/* Style (Categories) */}
-              <AccordionItem value="heading-style" className="border-none">
-                <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  Font Style
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4 px-1">
-                  <div className="space-y-4">
-                    {/* Lock to single font toggle */}
-                    <div className="flex items-center justify-between py-1">
-                      <Label htmlFor="heading-lock" className="text-sm font-medium">
-                        Lock to a single font for all pairs
-                      </Label>
-                      <Switch
-                        id="heading-lock"
-                        checked={isHeadingLocked}
-                        onCheckedChange={handleHeadingLockToggle}
-                        disabled={!canAccessFontLocking()}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-foreground">Font Style</h3>
+                <div className="space-y-4">
+                  {/* Lock to single font toggle */}
+                  <div className="flex items-center justify-between py-1">
+                    <Label htmlFor="heading-lock" className="text-sm font-medium">
+                      Lock to a single font for all pairs
+                    </Label>
+                    <Switch
+                      id="heading-lock"
+                      checked={isHeadingLocked}
+                      onCheckedChange={handleHeadingLockToggle}
+                      disabled={!canAccessFontLocking()}
+                    />
+                  </div>
+
+                  {/* Font selector when locked */}
+                  {isHeadingLocked && (
+                    <div className="">
+                      <FontSelector
+                        label=""
+                        fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
+                        fontWeight={fontLock.globalHeadingFont?.weight || '700'}
+                        onFontChange={handleGlobalHeadingFontChange}
                       />
                     </div>
+                  )}
 
-                    {/* Font selector when locked */}
-                    {isHeadingLocked && (
-                      <div className="">
-                        <FontSelector
-                          label=""
-                          fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
-                          fontWeight={fontLock.globalHeadingFont?.weight || '700'}
-                          onFontChange={handleGlobalHeadingFontChange}
-                        />
-                      </div>
-                    )}
-
-                    {/* Category grid when not locked */}
-                    {!isHeadingLocked && (
-                      <CategorySelector
-                        categories={categoryOrder}
-                        selectedCategories={headingFontFilters.categories}
-                        onCategoryToggle={(category) => handleCategoryToggle(category, true)}
-                        getCategoryCount={getCategoryCount}
-                        categoryOrder={categoryOrder}
-                      />
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                  {/* Category grid when not locked */}
+                  {!isHeadingLocked && (
+                    <CategorySelector
+                      categories={categoryOrder}
+                      selectedCategories={headingFontFilters.categories}
+                      onCategoryToggle={(category) => handleCategoryToggle(category, true)}
+                      getCategoryCount={getCategoryCount}
+                      categoryOrder={categoryOrder}
+                    />
+                  )}
+                </div>
+              </div>
 
               {/* Font Weight */}
               {!isHeadingLocked && (
-                <AccordionItem value="heading-weight" className="border-none">
-                  <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                    Font Weight
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2 pb-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{headingFontFilters.weightRange[0] === headingFontFilters.weightRange[1] ? headingFontFilters.weightRange[0] : `${headingFontFilters.weightRange[0]}-${headingFontFilters.weightRange[1]}`}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setHeadingWeightRange([100, 900])}
-                          className="h-6 px-2 text-xs"
-                        >
-                          Reset
-                        </Button>
-                      </div>
-                      <Slider
-                        value={headingFontFilters.weightRange}
-                        onValueChange={(value) => setHeadingWeightRange(value as [number, number])}
-                        min={100}
-                        max={900}
-                        step={100}
-                        className="w-full "
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>100</span>
-                        <span>200</span>
-                        <span>300</span>
-                        <span>400</span>
-                        <span>500</span>
-                        <span>600</span>
-                        <span>700</span>
-                        <span>800</span>
-                        <span>900</span>
-                      </div>
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-foreground">Font Weight</h3>
+                  <div className="space-y-3">
+
+                    <div className="grid grid-cols-5 gap-2">
+                      {[100, 200, 300, 400, 500, 600, 700, 800, 900].map(weight => {
+                        const isSelected = headingFontFilters.weightRange[0] <= weight && weight <= headingFontFilters.weightRange[1]
+                        return (
+                          <button
+                            key={weight}
+                            onClick={() => {
+                              if (headingFontFilters.weightRange[0] === headingFontFilters.weightRange[1] && headingFontFilters.weightRange[0] === weight) {
+                                // If only this weight is selected, expand to include adjacent weights
+                                setHeadingWeightRange([Math.max(100, weight - 100), Math.min(900, weight + 100)])
+                              } else if (isSelected) {
+                                // If this weight is in the range, try to exclude it
+                                const newRange: [number, number] = headingFontFilters.weightRange[0] === weight
+                                  ? [weight + 100, headingFontFilters.weightRange[1]]
+                                  : headingFontFilters.weightRange[1] === weight
+                                    ? [headingFontFilters.weightRange[0], weight - 100]
+                                    : [headingFontFilters.weightRange[0], weight - 100]
+                                if (newRange[0] <= newRange[1]) {
+                                  setHeadingWeightRange(newRange)
+                                }
+                              } else {
+                                // If this weight is not in the range, include it
+                                const newRange: [number, number] = [
+                                  Math.min(headingFontFilters.weightRange[0], weight),
+                                  Math.max(headingFontFilters.weightRange[1], weight)
+                                ]
+                                setHeadingWeightRange(newRange)
+                              }
+                            }}
+                            className={`px-2 py-1 rounded-md border text-xs transition-all duration-200 ${isSelected
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-transparent hover:border-primary/50 hover:bg-primary/5'
+                              } cursor-pointer`}
+                          >
+                            {weight}
+                          </button>
+                        )
+                      })}
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
+                  </div>
+                </div>
               )}
-            </Accordion>
+            </div>
           </div>
 
           {/* Body Section */}
-          <div className="space-y-4 border-b border-border py-6 px-6">
+          <div className="space-y-4  py-6 px-6">
             <h2 className="text-sm font-semibold text-primary uppercase tracking-[1px]">Body</h2>
 
-            <Accordion type="multiple" defaultValue={["body-display"]} className="space-y-2">
+            <div className="space-y-6">
               {/* Display Text */}
-              <AccordionItem value="body-display" className="border-none">
-                <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  Display Text
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  <Textarea
-                    id="body-text"
-                    value={globalText.bodyText}
-                    onChange={(e) => setGlobalText(globalText.headingText, e.target.value)}
-                    className="text-sm min-h-[80px] resize-none bg-background"
-                  />
-                </AccordionContent>
-              </AccordionItem>
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-foreground">Display Text</h3>
+                <Textarea
+                  id="body-text"
+                  value={globalText.bodyText}
+                  onChange={(e) => setGlobalText(globalText.headingText, e.target.value)}
+                  className="text-sm min-h-[80px] resize-none bg-background"
+                />
+              </div>
 
               {/* Font Size */}
-              <AccordionItem value="body-size" className="border-none">
-                <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  Font Size
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="body-font-size" className="text-sm font-medium">
-                        Font Size
-                      </Label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setBodyFontSize(16)}
-                        className="h-6 px-2 text-xs"
-                      >
-                        Reset
-                      </Button>
-                    </div>
-                    <Input
-                      id="body-font-size"
-                      type="number"
-                      value={bodyFontFilters.fontSize}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value)
-                        if (!isNaN(value) && value >= 8 && value <= 32) {
-                          setBodyFontSize(value)
-                        }
-                      }}
-                      min={8}
-                      max={32}
-                      className="w-full"
-                    />
+              <div className="space-y-3">
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="body-font-size" className="text-sm font-medium">
+                      Font Size
+                    </Label>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
+                  <Input
+                    id="body-font-size"
+                    type="number"
+                    value={bodyFontFilters.fontSize}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value)
+                      if (!isNaN(value) && value >= 8 && value <= 32) {
+                        setBodyFontSize(value)
+                      }
+                    }}
+                    min={8}
+                    max={32}
+                    className="w-full"
+                  />
+                </div>
+              </div>
 
               {/* Style (Categories) */}
-              <AccordionItem value="body-style" className="border-none">
-                <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                  Font Style
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  <div className="space-y-4">
-                    {/* Lock to single font toggle */}
-                    <div className="flex items-center justify-between py-1">
-                      <Label htmlFor="body-lock" className="text-sm font-medium">
-                        Lock to a single font for all pairs
-                      </Label>
-                      <Switch
-                        id="body-lock"
-                        checked={isBodyLocked}
-                        onCheckedChange={handleBodyLockToggle}
-                        disabled={!canAccessFontLocking()}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-foreground">Font Style</h3>
+                <div className="space-y-4">
+                  {/* Lock to single font toggle */}
+                  <div className="flex items-center justify-between py-1">
+                    <Label htmlFor="body-lock" className="text-sm font-medium">
+                      Lock to a single font for all pairs
+                    </Label>
+                    <Switch
+                      id="body-lock"
+                      checked={isBodyLocked}
+                      onCheckedChange={handleBodyLockToggle}
+                      disabled={!canAccessFontLocking()}
+                    />
+                  </div>
+
+                  {/* Font selector when locked */}
+                  {isBodyLocked && (
+                    <div className="">
+                      <FontSelector
+                        label=""
+                        fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
+                        fontWeight={fontLock.globalBodyFont?.weight || '400'}
+                        onFontChange={handleGlobalBodyFontChange}
                       />
                     </div>
+                  )}
 
-                    {/* Font selector when locked */}
-                    {isBodyLocked && (
-                      <div className="">
-                        <FontSelector
-                          label=""
-                          fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
-                          fontWeight={fontLock.globalBodyFont?.weight || '400'}
-                          onFontChange={handleGlobalBodyFontChange}
-                        />
-                      </div>
-                    )}
-
-                    {/* Category grid when not locked */}
-                    {!isBodyLocked && (
-                      <CategorySelector
-                        categories={categoryOrder}
-                        selectedCategories={bodyFontFilters.categories}
-                        onCategoryToggle={(category) => handleCategoryToggle(category, false)}
-                        getCategoryCount={getCategoryCount}
-                        categoryOrder={categoryOrder}
-                      />
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                  {/* Category grid when not locked */}
+                  {!isBodyLocked && (
+                    <CategorySelector
+                      categories={categoryOrder}
+                      selectedCategories={bodyFontFilters.categories}
+                      onCategoryToggle={(category) => handleCategoryToggle(category, false)}
+                      getCategoryCount={getCategoryCount}
+                      categoryOrder={categoryOrder}
+                    />
+                  )}
+                </div>
+              </div>
 
               {/* Font Weight */}
               {!isBodyLocked && (
-                <AccordionItem value="body-weight" className="border-none">
-                  <AccordionTrigger className="py-1 text-sm font-medium hover:no-underline">
-                    Font Weight
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2 pb-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{bodyFontFilters.weightRange[0] === bodyFontFilters.weightRange[1] ? bodyFontFilters.weightRange[0] : `${bodyFontFilters.weightRange[0]}-${bodyFontFilters.weightRange[1]}`}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setBodyWeightRange([100, 900])}
-                          className="h-6 px-2 text-xs"
-                        >
-                          Reset
-                        </Button>
-                      </div>
-                      <Slider
-                        value={bodyFontFilters.weightRange}
-                        onValueChange={(value) => setBodyWeightRange(value as [number, number])}
-                        min={100}
-                        max={900}
-                        step={100}
-                        className="w-full  "
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>100</span>
-                        <span>200</span>
-                        <span>300</span>
-                        <span>400</span>
-                        <span>500</span>
-                        <span>600</span>
-                        <span>700</span>
-                        <span>800</span>
-                        <span>900</span>
-                      </div>
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-foreground">Font Weight</h3>
+                  <div className="space-y-3">
+
+                    <div className="grid grid-cols-5 gap-2">
+                      {[100, 200, 300, 400, 500, 600, 700, 800, 900].map(weight => {
+                        const isSelected = bodyFontFilters.weightRange[0] <= weight && weight <= bodyFontFilters.weightRange[1]
+                        return (
+                          <button
+                            key={weight}
+                            onClick={() => {
+                              if (bodyFontFilters.weightRange[0] === bodyFontFilters.weightRange[1] && bodyFontFilters.weightRange[0] === weight) {
+                                // If only this weight is selected, expand to include adjacent weights
+                                setBodyWeightRange([Math.max(100, weight - 100), Math.min(900, weight + 100)])
+                              } else if (isSelected) {
+                                // If this weight is in the range, try to exclude it
+                                const newRange: [number, number] = bodyFontFilters.weightRange[0] === weight
+                                  ? [weight + 100, bodyFontFilters.weightRange[1]]
+                                  : bodyFontFilters.weightRange[1] === weight
+                                    ? [bodyFontFilters.weightRange[0], weight - 100]
+                                    : [bodyFontFilters.weightRange[0], weight - 100]
+                                if (newRange[0] <= newRange[1]) {
+                                  setBodyWeightRange(newRange)
+                                }
+                              } else {
+                                // If this weight is not in the range, include it
+                                const newRange: [number, number] = [
+                                  Math.min(bodyFontFilters.weightRange[0], weight),
+                                  Math.max(bodyFontFilters.weightRange[1], weight)
+                                ]
+                                setBodyWeightRange(newRange)
+                              }
+                            }}
+                            className={`px-2 py-1 rounded-md border text-xs transition-all duration-200 ${isSelected
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-transparent hover:border-primary/50 hover:bg-primary/5'
+                              } cursor-pointer`}
+                          >
+                            {weight}
+                          </button>
+                        )
+                      })}
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
+                  </div>
+                </div>
               )}
-            </Accordion>
+            </div>
           </div>
 
         </div>
