@@ -30,6 +30,14 @@ const FONT_BLACKLIST = [
   'Butcherman',
   'Griffy',
   'Jolly Lodger',
+  'Wavefont',
+  'Libre Barcode 128',
+  'Libre Barcode 128 Text',
+  'Libre Barcode 39',
+  'Libre Barcode 39 Extended',
+  'Libre Barcode 39 Extended Text',
+  'Libre Barcode 39 Text',
+  'Libre Barcode 39 Text',
 ]
 
 export function isGoodForDisplay(font: GoogleFont): boolean {

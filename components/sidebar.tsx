@@ -90,8 +90,7 @@ export function Sidebar() {
         updateFontPair(pair.id, { name: newName })
       }
     })
-    // Update all pair names to reflect new font
-    setTimeout(() => updateAllPairNames(), 0)
+    // Remove the infinite loop - the store already handles name generation
   }
 
   // Font lock handlers

@@ -93,21 +93,11 @@ export function HeaderButtons() {
       isCustom: isBodyLocked ? fontLock.globalBodyFont?.isCustom : false
     }
 
-    // Generate name based on the actual fonts being used
-    const headingName = isHeadingLocked && fontLock.globalHeadingFont 
-      ? fontLock.globalHeadingFont.family.split(' ')[0]
-      : newHeadingFont.family.split(' ')[0]
-      
-    const bodyName = isBodyLocked && fontLock.globalBodyFont
-      ? fontLock.globalBodyFont.family.split(' ')[0] 
-      : newBodyFont.family.split(' ')[0]
-    
-    const newPairName = `${headingName} ${bodyName}`
-
+    // Don't set name here - let the store's auto-generation handle it
+    // This prevents double name generation and ensures consistency
     updateFontPair(id, {
       headingFont: newHeadingFont,
-      bodyFont: newBodyFont,
-      name: newPairName
+      bodyFont: newBodyFont
     })
   }
 
