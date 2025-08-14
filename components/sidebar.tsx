@@ -183,7 +183,7 @@ export function Sidebar() {
   const isBodyLocked = fontLock.bodyLocked && canAccessFontLocking()
 
   return (
-    <div className="w-88 flex flex-col h-full bg-muted dark:bg-background">
+    <div className="w-88 flex flex-col h-full">
       <div className="pb-48 flex-1 overflow-y-scroll scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-muted-foreground">
         <div className="">
           {/* Heading Section */}
@@ -230,7 +230,7 @@ export function Sidebar() {
                       min={12}
                       max={96}
                       step={2}
-                      className="w-full  [&>span]:!bg-zinc-300"
+                      className="w-full  "
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>12px</span>
@@ -317,7 +317,7 @@ export function Sidebar() {
                         min={100}
                         max={900}
                         step={100}
-                        className="w-full  [&>span]:!bg-zinc-300"
+                        className="w-full "
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>100</span>
@@ -381,7 +381,7 @@ export function Sidebar() {
                       min={8}
                       max={32}
                       step={1}
-                      className="w-full  [&>span]:!bg-zinc-300"
+                      className="w-full  "
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>8px</span>
@@ -467,7 +467,7 @@ export function Sidebar() {
                         min={100}
                         max={900}
                         step={100}
-                        className="w-full  [&>span]:!bg-zinc-300"
+                        className="w-full  "
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>100</span>

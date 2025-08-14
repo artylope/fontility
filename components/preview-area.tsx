@@ -304,7 +304,7 @@ export function PreviewArea() {
   }, [isBodyLocked, fontLock.globalBodyFont])
 
   return (
-    <div className="bg-muted dark:bg-background flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-muted-foreground relative" style={{ pointerEvents: 'none' }}>
+    <div className="bg-background flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-muted-foreground relative" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
       <div className="p-2 pr-4 lg:p-4 lg:pr-6  w-full " style={{ pointerEvents: 'auto' }}>
 
