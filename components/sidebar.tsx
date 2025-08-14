@@ -191,8 +191,8 @@ export function Sidebar() {
   const isBodyLocked = fontLock.bodyLocked && canAccessFontLocking()
 
   return (
-    <div className="w-88 flex flex-col h-full bg-muted ">
-      <div className="pb-48 flex-1 overflow-y-scroll scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+    <div className="w-88 flex flex-col h-full bg-muted dark:bg-background">
+      <div className="pb-48 flex-1 overflow-y-scroll scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-muted-foreground">
         <div className="">
           {/* Heading Section */}
           <div className="space-y-4 border-b border-border py-6 px-6">
@@ -297,14 +297,14 @@ export function Sidebar() {
                               key={`heading-${category}`}
                               onClick={() => handleCategoryToggle(category, true)}
                               className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
-                                ? 'border-stone-900 bg-stone-900/10 text-stone-900'
-                                : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
+                                ? 'border-zinc-900 bg-zinc-900/10 text-zinc-900'
+                                : 'border-border bg-background hover:border-zinc-900/50 hover:bg-zinc-900/5'
                                 } cursor-pointer`}
                             >
                               <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
                                 {category.replace('-', ' ')}
                               </div>
-                              <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
+                              <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-zinc-100 text-zinc-700 rounded-full font-normal">
                                 {getCategoryCount(category)}
                               </div>
                             </button>
@@ -463,14 +463,14 @@ export function Sidebar() {
                               key={`body-${category}`}
                               onClick={() => handleCategoryToggle(category, false)}
                               className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
-                                ? 'border-stone-900 bg-stone-900/10 text-stone-900'
-                                : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
+                                ? 'border-zinc-900 bg-zinc-900/10 text-zinc-900'
+                                : 'border-border bg-background hover:border-zinc-900/50 hover:bg-zinc-900/5'
                                 } cursor-pointer`}
                             >
                               <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
                                 {category.replace('-', ' ')}
                               </div>
-                              <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
+                              <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-zinc-100 text-zinc-700 rounded-full font-normal">
                                 {getCategoryCount(category)}
                               </div>
                             </button>
