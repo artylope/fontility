@@ -2,9 +2,12 @@ import { HeaderButtons } from './header-buttons'
 
 export function Header() {
     return (
-        <div className="flex items-center justify-between h-16 p-4 border-b border-border flex-shrink-0 bg-background z-10">
-            <h2 className="text-lg font-semibold">Fontility Pair</h2>
-            <HeaderButtons />
+        <div className="bg-muted flex flex-col w-full pt-2 px-2 justify-center items-center">
+            <div className="p-4 h-14 w-full flex items-center justify-between flex-shrink-0 z-10">
+                <h2 className="text-primary uppercase  text-lg font-semibold tracking-wider">Fontility</h2>
+                <HeaderButtons />
+            </div>
         </div>
+
     )
 } 

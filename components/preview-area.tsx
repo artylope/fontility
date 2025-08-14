@@ -304,9 +304,9 @@ export function PreviewArea() {
   }, [isBodyLocked, fontLock.globalBodyFont])
 
   return (
-    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent relative" style={{ pointerEvents: 'none' }}>
+    <div className="bg-muted flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent relative" style={{ pointerEvents: 'none' }}>
       {/* Content area */}
-      <div className="p-6 w-full" style={{ pointerEvents: 'auto' }}>
+      <div className="p-2 w-full " style={{ pointerEvents: 'auto' }}>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
           {fontPairs.map((pair) => {

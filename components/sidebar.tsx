@@ -106,7 +106,7 @@ export function Sidebar() {
   const handleHeadingLockToggle = (locked: boolean) => {
     if (!canAccessFontLocking()) return
     setHeadingLocked(locked)
-    
+
     if (locked) {
       // Set default heading font if none exists
       if (!fontLock.globalHeadingFont) {
@@ -116,18 +116,18 @@ export function Sidebar() {
       const targetFont = fontLock.globalHeadingFont || { family: 'Inter', weight: '700', category: 'sans-serif', isCustom: false }
       fontPairs.forEach(pair => {
         updateFontPair(pair.id, {
-          headingFont: { 
-            family: targetFont.family, 
-            weight: targetFont.weight, 
-            category: targetFont.category, 
-            lineHeight: 1.25, 
-            letterSpacing: -0.025, 
-            isCustom: targetFont.isCustom 
+          headingFont: {
+            family: targetFont.family,
+            weight: targetFont.weight,
+            category: targetFont.category,
+            lineHeight: 1.25,
+            letterSpacing: -0.025,
+            isCustom: targetFont.isCustom
           }
         })
       })
     }
-    
+
     // Update all pair names to reflect new lock state
     setTimeout(() => updateAllPairNames(), 0)
   }
@@ -135,7 +135,7 @@ export function Sidebar() {
   const handleBodyLockToggle = (locked: boolean) => {
     if (!canAccessFontLocking()) return
     setBodyLocked(locked)
-    
+
     if (locked) {
       // Set default body font if none exists
       if (!fontLock.globalBodyFont) {
@@ -145,18 +145,18 @@ export function Sidebar() {
       const targetFont = fontLock.globalBodyFont || { family: 'Inter', weight: '400', category: 'sans-serif', isCustom: false }
       fontPairs.forEach(pair => {
         updateFontPair(pair.id, {
-          bodyFont: { 
-            family: targetFont.family, 
-            weight: targetFont.weight, 
-            category: targetFont.category, 
-            lineHeight: 1.625, 
-            letterSpacing: 0, 
-            isCustom: targetFont.isCustom 
+          bodyFont: {
+            family: targetFont.family,
+            weight: targetFont.weight,
+            category: targetFont.category,
+            lineHeight: 1.625,
+            letterSpacing: 0,
+            isCustom: targetFont.isCustom
           }
         })
       })
     }
-    
+
     // Update all pair names to reflect new lock state
     setTimeout(() => updateAllPairNames(), 0)
   }
@@ -191,11 +191,11 @@ export function Sidebar() {
   const isBodyLocked = fontLock.bodyLocked && canAccessFontLocking()
 
   return (
-    <div className="w-88 border-r border-border flex flex-col h-full">
+    <div className="w-88 flex flex-col h-full bg-muted ">
       <div className="pb-48 flex-1 overflow-y-scroll scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
         <div className="">
           {/* Heading Section */}
-          <div className="space-y-4 border-b border-border py-4 px-4">
+          <div className="space-y-4 border-b border-border py-6 px-6">
             <h2 className="text-sm font-semibold text-primary uppercase tracking-[1px]">Heading</h2>
 
             <Accordion type="multiple" defaultValue={["heading-display"]} className="space-y-2">
@@ -209,7 +209,7 @@ export function Sidebar() {
                     id="heading-text"
                     value={globalText.headingText}
                     onChange={(e) => setGlobalText(e.target.value, globalText.bodyText)}
-                    className="text-sm"
+                    className="text-sm bg-background"
                   />
                 </AccordionContent>
               </AccordionItem>
@@ -276,7 +276,7 @@ export function Sidebar() {
 
                     {/* Font selector when locked */}
                     {isHeadingLocked && (
-                      <div className="p-3 bg-muted rounded-lg">
+                      <div className="">
                         <FontSelector
                           label=""
                           fontFamily={fontLock.globalHeadingFont?.family || 'Inter'}
@@ -289,27 +289,27 @@ export function Sidebar() {
                     {/* Category grid when not locked */}
                     {!isHeadingLocked && (
                       <div className="grid grid-cols-2 gap-2">
-                    {categoryOrder.map(category => {
-                      const isSelected = headingFontFilters.categories.includes(category)
+                        {categoryOrder.map(category => {
+                          const isSelected = headingFontFilters.categories.includes(category)
 
-                        return (
-                          <button
-                            key={`heading-${category}`}
-                            onClick={() => handleCategoryToggle(category, true)}
-                            className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
-                              ? 'border-stone-900 bg-stone-900/10 text-stone-900'
-                              : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
-                              } cursor-pointer`}
-                          >
-                            <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
-                              {category.replace('-', ' ')}
-                            </div>
-                            <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
-                              {getCategoryCount(category)}
-                            </div>
-                          </button>
-                        )
-                      })}
+                          return (
+                            <button
+                              key={`heading-${category}`}
+                              onClick={() => handleCategoryToggle(category, true)}
+                              className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
+                                ? 'border-stone-900 bg-stone-900/10 text-stone-900'
+                                : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
+                                } cursor-pointer`}
+                            >
+                              <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
+                                {category.replace('-', ' ')}
+                              </div>
+                              <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
+                                {getCategoryCount(category)}
+                              </div>
+                            </button>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
@@ -362,7 +362,7 @@ export function Sidebar() {
           </div>
 
           {/* Body Section */}
-          <div className="space-y-4 border-b border-border py-4 px-4">
+          <div className="space-y-4 border-b border-border py-6 px-6">
             <h2 className="text-sm font-semibold text-primary uppercase tracking-[1px]">Body</h2>
 
             <Accordion type="multiple" defaultValue={["body-display"]} className="space-y-2">
@@ -376,7 +376,7 @@ export function Sidebar() {
                     id="body-text"
                     value={globalText.bodyText}
                     onChange={(e) => setGlobalText(globalText.headingText, e.target.value)}
-                    className="text-sm min-h-[80px] resize-none"
+                    className="text-sm min-h-[80px] resize-none bg-background"
                   />
                 </AccordionContent>
               </AccordionItem>
@@ -442,7 +442,7 @@ export function Sidebar() {
 
                     {/* Font selector when locked */}
                     {isBodyLocked && (
-                      <div className="p-3 bg-muted rounded-lg">
+                      <div className="">
                         <FontSelector
                           label=""
                           fontFamily={fontLock.globalBodyFont?.family || 'Inter'}
@@ -455,27 +455,27 @@ export function Sidebar() {
                     {/* Category grid when not locked */}
                     {!isBodyLocked && (
                       <div className="grid grid-cols-2 gap-2">
-                    {categoryOrder.map(category => {
-                      const isSelected = bodyFontFilters.categories.includes(category)
+                        {categoryOrder.map(category => {
+                          const isSelected = bodyFontFilters.categories.includes(category)
 
-                        return (
-                          <button
-                            key={`body-${category}`}
-                            onClick={() => handleCategoryToggle(category, false)}
-                            className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
-                              ? 'border-stone-900 bg-stone-900/10 text-stone-900'
-                              : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
-                              } cursor-pointer`}
-                          >
-                            <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
-                              {category.replace('-', ' ')}
-                            </div>
-                            <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
-                              {getCategoryCount(category)}
-                            </div>
-                          </button>
-                        )
-                      })}
+                          return (
+                            <button
+                              key={`body-${category}`}
+                              onClick={() => handleCategoryToggle(category, false)}
+                              className={`p-3 rounded-lg border-2 text-sm transition-all duration-200 ${isSelected
+                                ? 'border-stone-900 bg-stone-900/10 text-stone-900'
+                                : 'border-border bg-background hover:border-stone-900/50 hover:bg-stone-900/5'
+                                } cursor-pointer`}
+                            >
+                              <div className="font-medium capitalize" style={categoryFontStyles[category as keyof typeof categoryFontStyles]}>
+                                {category.replace('-', ' ')}
+                              </div>
+                              <div className="inline-flex items-center justify-center px-2 py-1 mt-2 text-xs bg-stone-100 text-stone-700 rounded-full font-normal">
+                                {getCategoryCount(category)}
+                              </div>
+                            </button>
+                          )
+                        })}
                       </div>
                     )}
                   </div>

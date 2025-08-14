@@ -31,7 +31,7 @@ export function ModeToggle() {
       className={cn(
         'inline-flex relative items-center h-9 rounded-full border border-transparent transition-all duration-200 w-18',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-        isDark ? 'bg-muted-foreground/20' : 'bg-muted'
+        isDark ? 'bg-foreground/20' : 'bg-foreground/10'
       )}
       aria-label="Toggle theme">
       {/* Moon Icon - positioned on the right side */}
