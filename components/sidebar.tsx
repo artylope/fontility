@@ -129,7 +129,7 @@ export function Sidebar() {
 
   return (
     <div className="w-88 border-r border-border flex flex-col h-full">
-      <div className="flex-1 overflow-y-scroll scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+      <div className="pb-48 flex-1 overflow-y-scroll scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
         <div className="">
           {/* Heading Section */}
           <div className="space-y-4 border-b border-border py-4 px-4">
