@@ -230,7 +230,7 @@ export function Sidebar() {
                       min={12}
                       max={96}
                       step={2}
-                      className="w-full [&_.slider-track]:!bg-zinc-300"
+                      className="w-full  [&>span]:!bg-zinc-300"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>12px</span>
